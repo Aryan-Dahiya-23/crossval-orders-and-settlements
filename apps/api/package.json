@@ -1,0 +1,40 @@
+{
+  "name": "@crossval/api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "exports": {
+    ".": "./dist/index.js"
+  },
+  "scripts": {
+    "dev": "tsx watch src/server.ts",
+    "build": "tsc -p tsconfig.build.json",
+    "start": "node dist/server.js",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src tests",
+    "test": "pnpm --filter @crossval/contracts build && vitest run --exclude 'tests/**/*.integration.test.ts'",
+    "test:integration": "pnpm --filter @crossval/contracts build && vitest run --no-file-parallelism tests/db/migrations.integration.test.ts tests/auth/auth.integration.test.ts tests/orders/orders.integration.test.ts",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@crossval/contracts": "workspace:*",
+    "argon2": "0.45.1",
+    "cookie": "2.0.1",
+    "express": "5.2.1",
+    "express-rate-limit": "8.6.2",
+    "helmet": "8.3.0",
+    "mongodb": "7.5.0",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/express": "5.0.6",
+    "@types/node": "24.13.3",
+    "@types/supertest": "7.2.1",
+    "eslint": "9.39.5",
+    "supertest": "7.2.2",
+    "tsx": "4.23.12",
+    "typescript": "6.0.3",
+    "vitest": "4.1.10"
+  }
+}

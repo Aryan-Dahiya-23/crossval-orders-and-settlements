@@ -1,0 +1,36 @@
+{
+  "name": "crossval-orders-settlements",
+  "version": "0.0.0",
+  "private": true,
+  "packageManager": "pnpm@11.5.2",
+  "engines": {
+    "node": ">=24.16.0 <25",
+    "pnpm": ">=11.5.2 <12"
+  },
+  "scripts": {
+    "predev": "pnpm --filter @crossval/contracts build",
+    "dev": "concurrently --kill-others-on-fail --names web,api --prefix-colors cyan,green \"pnpm --filter @crossval/web dev\" \"pnpm --filter @crossval/api dev\"",
+    "dev:web": "pnpm --filter @crossval/contracts build && pnpm --filter @crossval/web dev",
+    "dev:api": "pnpm --filter @crossval/contracts build && pnpm --filter @crossval/api dev",
+    "build": "pnpm -r --sort run build",
+    "typecheck": "pnpm -r --if-present run typecheck",
+    "lint": "pnpm -r --if-present run lint",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "pnpm -r --if-present run test",
+    "test:integration": "pnpm --filter @crossval/api test:integration",
+    "test:watch": "pnpm -r --if-present --parallel run test:watch",
+    "db:migrate": "pnpm --filter @crossval/api exec tsx src/db/migrate.ts",
+    "db:seed": "pnpm --filter @crossval/api exec tsx src/db/seed.ts",
+    "db:reset": "pnpm --filter @crossval/api exec tsx src/db/reset.ts --confirm"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.39.5",
+    "concurrently": "10.0.4",
+    "eslint": "9.39.5",
+    "eslint-config-next": "16.3.1",
+    "prettier": "3.9.6",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.67.0"
+  }
+}

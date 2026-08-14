@@ -4,13 +4,15 @@ These instructions apply to the entire repository. Codex reads repository-level 
 
 ## Current project state
 
-Phases 1 through 4 are complete. Phase 5 has not started.
+Phases 1 through 6 are complete. Phase 7 has not started.
 
 - The Next.js web app, Express API, contracts package, React Query provider, and shared tooling are implemented.
 - MongoDB configuration, the reusable driver lifecycle, typed collections, strict validators, named indexes, versioned migrations, seed/reset tooling, and real-database integration tests are implemented.
 - Signup, login, logout, current-session lookup, Argon2id password hashing, opaque database-backed sessions, authentication middleware, same-origin browser routing, and protected frontend route behavior are implemented.
 - Order CRUD, summary, derived status, ownership-scoped list/detail queries, and conditional unpaid edit/delete behavior are implemented and verified against MongoDB Atlas.
-- Do not begin payment services or dashboard implementation until the user explicitly approves the relevant next phase.
+- Atomic payment recording, idempotent replay, actionable balance errors, two-client concurrency tests, and the essential order/payment React Query experience are implemented.
+- A focused local Align UI component foundation, responsive application shell, redesigned auth screens, dashboard, order detail, and payment modal are implemented.
+- Do not begin URL-backed/server-backed dashboard controls or the order create/edit experience until the user explicitly approves the relevant next phase.
 - Preserve the Phase 2 database boundary rather than introducing an ODM or generic repository in later phases.
 - Treat `orders-and-settlements.pdf` as the original assignment source.
 - Treat the three previously inspected dashboard repositories as read-only design references. Never modify them, import them at runtime, or make this project depend on them.

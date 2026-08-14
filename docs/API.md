@@ -369,8 +369,11 @@ Errors:
 - `409 IDEMPOTENCY_KEY_REUSED`.
 - `422 PAYMENT_EXCEEDS_BALANCE` with `remainingAmountCents`.
 - `422 ORDER_ALREADY_PAID` with a zero remaining balance.
+- `422 PAYMENT_LIMIT_REACHED` when the bounded 1,000-entry ledger is full.
 - `422 VALIDATION_FAILED`.
 - `503 PAYMENT_TEMPORARILY_UNAVAILABLE` for a retryable MongoDB availability/write failure.
+
+UUID keys are trimmed and normalized to lowercase before matching. `PAYMENT_EXCEEDS_BALANCE` and `ORDER_ALREADY_PAID` include `details.remainingAmountCents`. A retry following an ambiguous `503` must retain the same logical request and idempotency key.
 
 ## 13. `GET /health`
 

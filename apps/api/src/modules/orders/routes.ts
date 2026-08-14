@@ -1,5 +1,6 @@
 import {
   createOrderRequestSchema,
+  recordPaymentRequestSchema,
   replaceOrderRequestSchema,
   type DataResponse,
   type OrderDetail,
@@ -13,11 +14,13 @@ import {
 } from "../auth/middleware.js";
 import { AuthService } from "../auth/service.js";
 import type { SessionCookieConfiguration } from "../auth/types.js";
+import { paymentRateLimit } from "../../middleware/rate-limit.js";
 import { OrderService } from "./service.js";
 import {
   parseOrderId,
   parseOrderInput,
   parseOrderListQuery,
+  parsePaymentIdempotencyKey,
 } from "./validation.js";
 
 interface OrdersRouterOptions {
@@ -60,6 +63,24 @@ export const createOrdersRouter = (options: OrdersRouterOptions): Router => {
     };
     response.status(201).json(body);
   });
+
+  router.post(
+    "/:orderId/payments",
+    paymentRateLimit,
+    async (request, response) => {
+      const context = requireAuthenticationContext(request);
+      const result = await orderService.recordPayment(
+        context.userId,
+        parseOrderId(request.params.orderId ?? ""),
+        parseOrderInput(recordPaymentRequestSchema, request.body),
+        parsePaymentIdempotencyKey(request.header("Idempotency-Key")),
+      );
+      if (result.replayed) {
+        response.setHeader("Idempotency-Replayed", "true");
+      }
+      response.status(result.replayed ? 200 : 201).json({ data: result.data });
+    },
+  );
 
   router.get("/:orderId", async (request, response) => {
     const context = requireAuthenticationContext(request);

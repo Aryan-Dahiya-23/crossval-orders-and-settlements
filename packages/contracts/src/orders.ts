@@ -29,6 +29,9 @@ const positiveCentsSchema = z
     "Amount exceeds the maximum allowed order value.",
   );
 
+const paymentIdempotencyKeyPattern =
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}$/;
+
 export const orderLineItemInputSchema = z.strictObject({
   description: z
     .string()
@@ -57,6 +60,22 @@ export const createOrderRequestSchema = z.strictObject({
 });
 
 export const replaceOrderRequestSchema = createOrderRequestSchema;
+
+export const recordPaymentRequestSchema = z.strictObject({
+  amountCents: positiveCentsSchema,
+  paymentDate: dateOnlySchema,
+  note: z
+    .string()
+    .trim()
+    .max(500, "Note must contain at most 500 characters.")
+    .optional(),
+});
+
+export const paymentIdempotencyKeySchema = z
+  .string()
+  .trim()
+  .regex(paymentIdempotencyKeyPattern, "Idempotency-Key must be a valid UUID.")
+  .transform((value) => value.toLowerCase());
 
 const positiveQueryIntegerSchema = z
   .string()
@@ -87,6 +106,7 @@ export const orderListQuerySchema = z.strictObject({
 export type OrderLineItemInput = z.infer<typeof orderLineItemInputSchema>;
 export type CreateOrderRequest = z.infer<typeof createOrderRequestSchema>;
 export type ReplaceOrderRequest = z.infer<typeof replaceOrderRequestSchema>;
+export type RecordPaymentRequest = z.infer<typeof recordPaymentRequestSchema>;
 export type OrderListQuery = z.infer<typeof orderListQuerySchema>;
 
 export interface OrderListItem {
@@ -126,6 +146,19 @@ export interface OrderDetail extends OrderListItem {
   payments: OrderPayment[];
 }
 
+export interface PaymentOrderSnapshot {
+  id: string;
+  status: OrderStatus;
+  totalAmountCents: number;
+  paidAmountCents: number;
+  balanceDueCents: number;
+}
+
+export interface RecordPaymentResult {
+  payment: OrderPayment;
+  order: PaymentOrderSnapshot;
+}
+
 export interface OrderSummary {
   totalOrders: number;
   outstandingAmountCents: number;
@@ -156,4 +189,8 @@ export interface OrderDetailResponse {
 export interface OrderSummaryResponse {
   data: OrderSummary;
   meta: SummaryMeta;
+}
+
+export interface RecordPaymentResponse {
+  data: RecordPaymentResult;
 }

@@ -1,5 +1,6 @@
 import {
   orderListQuerySchema,
+  paymentIdempotencyKeySchema,
   type CreateOrderRequest,
   type OrderListQuery,
   type ReplaceOrderRequest,
@@ -40,8 +41,11 @@ export const parseOrderInput = <Output>(
 export const parseOrderListQuery = (query: unknown): OrderListQuery =>
   parseOrderInput<OrderListQuery>(orderListQuerySchema, query);
 
-export const parseOrderId = (value: string): ObjectId => {
+export const parseOrderId = (value: unknown): ObjectId => {
   try {
+    if (typeof value !== "string") {
+      throw new Error("Order ID must be a string.");
+    }
     return requireObjectId(value);
   } catch {
     throw new AppError({
@@ -51,6 +55,9 @@ export const parseOrderId = (value: string): ObjectId => {
     });
   }
 };
+
+export const parsePaymentIdempotencyKey = (value: unknown): string =>
+  parseOrderInput(paymentIdempotencyKeySchema, value);
 
 export const asOrderDomainValidationError = (
   error: unknown,

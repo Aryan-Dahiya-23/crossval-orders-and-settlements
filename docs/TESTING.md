@@ -26,7 +26,7 @@ pnpm test
 pnpm test:integration
 ```
 
-The current real-MongoDB Atlas integration suite contains 23 tests: five database-foundation tests, eleven authentication tests, and seven order API tests. It proves migration idempotency, strict date/item/money/ledger validation, unique and TTL index options, normalized duplicate-email rejection, hashed credential/session storage, generic login failure, configurable registration closure, session rotation, logout revocation, direct expiration checks, origin rejection, structured boundary errors including oversized payloads, credential rate limiting, concurrent duplicate-signup safety, owned order CRUD, derived status filters, summaries, locked-order behavior, and deterministic list projections.
+The current real-MongoDB Atlas integration suite contains 31 tests: five database-foundation tests, eleven authentication tests, seven order API tests, and eight atomic-payment tests. In addition to the existing migration, authentication, ownership, order CRUD, status, and projection coverage, it proves partial/exact settlement, overpayment rejection, semantic payment dates, ownership concealment, stable idempotent replay, changed-payload conflicts, duplicate concurrent requests, sufficient-balance predicate rechecks, exact concurrent settlement, and payment-versus-edit/delete serialization through two independent MongoDB clients.
 
 The API package keeps integration files out of its ordinary unit command. `pnpm test:integration` runs the database suites serially so each suite can own and drop an isolated generated test database safely.
 
@@ -97,7 +97,7 @@ Phase 3 also passed a live browser smoke on 2026-08-14: protected-route redirect
 ### Ownership
 
 - [x] User B cannot list, summarize, fetch, edit, or delete User A's orders; foreign and missing IDs have the same 404 response.
-- Payment-route ownership tests remain Phase 5 work.
+- [x] Payment creation is ownership-scoped and foreign orders use the same 404 response as missing orders.
 
 ### Orders
 
@@ -111,14 +111,14 @@ Phase 3 also passed a live browser smoke on 2026-08-14: protected-route redirect
 
 ### Payments
 
-- valid partial payment updates balance and status;
-- exact remaining payment produces zero balance and `paid`;
-- overpayment is rejected without any partial write;
-- zero/negative payment is rejected;
-- payment cannot be edited or deleted;
-- identical idempotency replay returns the original committed result without a second embedded payment;
-- reuse of an idempotency key with a different payload returns a conflict;
-- failures leave both payment total and order balance unchanged.
+- [x] valid partial payment updates balance and status;
+- [x] exact remaining payment produces zero balance and `paid`;
+- [x] overpayment is rejected without any partial write;
+- [x] zero/negative payment is rejected;
+- [x] payment cannot be edited or deleted because no mutation routes exist;
+- [x] identical idempotency replay returns the original committed result without a second embedded payment;
+- [x] reuse of an idempotency key with a different payload returns a conflict;
+- [x] failures leave both payment total and order balance unchanged.
 
 ## Concurrency tests
 

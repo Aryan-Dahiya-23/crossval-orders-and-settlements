@@ -37,7 +37,7 @@ Registration can remain open for the assessment demo. A real public deployment w
 
 ## Authorization and tenant isolation
 
-Every order and payment operation is scoped through the authenticated user. Phase 4 implements this rule for every order CRUD/list/summary query and conditional write; Phase 5 extends the same rule to payment creation:
+Every order and payment operation is scoped through the authenticated user. Phase 4 implements this rule for every order CRUD/list/summary query and conditional write; Phase 5 implements the same rule in both the payment atomic predicate and its diagnostic/replay reads:
 
 ```text
 requested order ID + current user ID -> authorized order or not found
@@ -122,7 +122,7 @@ Minimum controls:
 | Login        | 20 attempts per 15 minutes per IP plus normalized email        |
 | Registration | 20 attempts per hour per IP; optional environment disable flag |
 | General API  | 300 requests per 15 minutes per IP                             |
-| Payment      | Conservative limit is added with the Phase 5 payment endpoint  |
+| Payment      | 60 attempts per 15 minutes per IP, plus the general API limit  |
 
 The current counters are in-process and return `429` with a safe retry hint. A horizontally scaled deployment needs a shared edge or distributed limiter so thresholds remain meaningful across instances.
 

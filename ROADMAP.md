@@ -21,7 +21,9 @@ This roadmap defines the order of implementation after explicit approval to begi
 | Phase 2 — MongoDB foundation            | Complete                                |
 | Phase 3 — Authentication and ownership  | Complete                                |
 | Phase 4 — Order domain and REST CRUD    | Complete                                |
-| Phase 5 onward                          | Not started; awaiting explicit approval |
+| Phase 5 — Atomic payment system         | Complete                                |
+| Phase 6 — Align UI foundation and shell | Complete                                |
+| Phase 7 onward                          | Not started; awaiting explicit approval |
 
 ## Phase 0 — Requirements and architecture
 
@@ -178,6 +180,8 @@ Verification:
 - Concurrent `$400 + $400` against `$500` admits only one request.
 - Payment racing with order edit/delete preserves all invariants.
 
+Implementation result (2026-08-15): Complete. Payment creation uses one owned conditional `findOneAndUpdate` that requires sufficient balance, an unused normalized UUID idempotency key, and remaining ledger capacity. The write decrements balance, increments payment count, appends the immutable payment, and updates the timestamp atomically. Replays return the original committed payment representation, changed payloads conflict, and current balances are returned for actionable rejection states. The essential React Query experience now includes account summary, recent-order navigation, order detail, payment history, and a payment dialog with retained logical-attempt keys. Sixteen unit tests and thirty-one Atlas integration tests pass, including independent-client concurrency and payment-versus-edit/delete races.
+
 ## Phase 6 — Align UI foundation and application shell
 
 Goal: create the product's visual language and authenticated navigation.
@@ -198,6 +202,8 @@ Verification:
 - Focus is visible.
 - Desktop and narrow layouts remain usable.
 - No placeholder navigation or nonfunctional actions remain.
+
+Implementation result (2026-08-15): Complete. The web app now uses a focused set of local Align UI-style primitives backed by Radix Dialog, Remix icons, Tailwind CSS, and shared button, input, modal, badge, alert, and skeleton components. The authenticated experience has a fixed desktop sidebar, dismissible mobile navigation, consistent page hierarchy, responsive list/detail compositions, accessible status labels, visible focus, and a skip link. Login, signup, dashboard, order detail, payment history, and settlement states now share one restrained B2B finance design language derived from the approved references without importing or depending on them. TypeScript, ESLint, the production build, and live registration/list/detail/payment browser flows passed with no browser console errors.
 
 ## Phase 7 — Dashboard and React Query integration
 

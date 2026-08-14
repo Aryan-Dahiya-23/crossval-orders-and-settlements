@@ -209,6 +209,13 @@ Status values are `Accepted`, `Proposed`, `Superseded`, or `Deferred`.
 - Rationale: Ownership-led queries prevent tenant leakage, deterministic sorting prevents pagination drift, and the conditional predicate remains correct when the Phase 5 payment write races an edit or deletion. A full replacement keeps server totals and generated line-item positions authoritative.
 - Consequences: Migration `003_add_order_sort_tiebreaker` rebuilds the default newest-orders index as `{ userId, createdAt, _id }`. A future optimistic-concurrency protocol must be designed as an explicit contract rather than emitting an ambiguous `ORDER_CHANGED` response.
 
+## ADR-030: Atomic embedded-ledger payments and replay reconstruction
+
+- Status: Accepted
+- Decision: Record payments with one owned conditional `findOneAndUpdate` that matches sufficient balance, ledger capacity, and absence of the normalized UUID key. Store a SHA-256 fingerprint of normalized amount/date/note, append the immutable payment, decrement balance, increment count, and set `updatedAt` in the same write. Reconstruct the original payment response from ledger position for same-key replay.
+- Rationale: The order aggregate contains every value that must remain consistent, so MongoDB document atomicity and predicate rechecks protect concurrent settlement without a multi-document transaction. Fingerprints distinguish safe retries from accidental key reuse, while replay reconstruction keeps the original response stable even after later payments.
+- Consequences: Payment volume is bounded at 1,000 entries, financial mutations are never optimistic in the UI, ambiguous failures must retain the same key, and future refund/reversal support requires a new append-only domain operation rather than editing payments.
+
 ## Open decisions for later implementation
 
 These choices are deliberately not frozen until current library/platform behavior can be verified:
@@ -216,7 +223,6 @@ These choices are deliberately not frozen until current library/platform behavio
 - versions of dependencies first introduced after Phase 3;
 - exact Vercel Express adapter/topology;
 - whether registration is public in the final hosted demo;
-- whether payment reference/note is included in MVP;
 - final page-size options and allowed sort fields;
 - whether dashboard summary respects status/date filters or always represents the entire account.
 

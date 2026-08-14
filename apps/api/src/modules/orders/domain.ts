@@ -2,7 +2,9 @@ import type {
   CreateOrderRequest,
   OrderLineItemInput,
   OrderStatus,
+  RecordPaymentRequest,
 } from "@crossval/contracts";
+import { createHash } from "node:crypto";
 
 import { maximumOrderAmountCents } from "./constants.js";
 
@@ -29,6 +31,13 @@ export interface OrderDraft {
   dueDate: string;
   lineItems: CalculatedLineItem[];
   totalAmountCents: number;
+}
+
+export interface PaymentDraft {
+  amountCents: number;
+  paymentDate: string;
+  note: string | null;
+  requestFingerprint: string;
 }
 
 const canonicalDatePattern = /^\d{4}-\d{2}-\d{2}$/;
@@ -64,6 +73,44 @@ export const isCanonicalDateOnly = (value: string): boolean => {
 
 export const getUtcDateOnly = (now: Date): string =>
   now.toISOString().slice(0, 10);
+
+export const preparePaymentDraft = (
+  input: RecordPaymentRequest,
+  todayUtc: string,
+): PaymentDraft => {
+  if (!Number.isSafeInteger(input.amountCents) || input.amountCents < 1) {
+    throw new OrderDomainValidationError(
+      "amountCents",
+      "Payment amount must be a positive integer number of cents.",
+    );
+  }
+  if (!isCanonicalDateOnly(input.paymentDate)) {
+    throw new OrderDomainValidationError(
+      "paymentDate",
+      "Payment date must be a valid YYYY-MM-DD date.",
+    );
+  }
+  if (input.paymentDate > todayUtc) {
+    throw new OrderDomainValidationError(
+      "paymentDate",
+      "Payment date cannot be in the future.",
+    );
+  }
+
+  const normalizedNote =
+    input.note === undefined ? "" : normalizeWhitespace(input.note);
+  const note = normalizedNote.length === 0 ? null : normalizedNote;
+  const requestFingerprint = createHash("sha256")
+    .update(JSON.stringify([input.amountCents, input.paymentDate, note]))
+    .digest("hex");
+
+  return {
+    amountCents: input.amountCents,
+    paymentDate: input.paymentDate,
+    note,
+    requestFingerprint,
+  };
+};
 
 const calculateLineTotal = (
   item: OrderLineItemInput,

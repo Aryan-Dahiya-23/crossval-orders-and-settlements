@@ -2,7 +2,7 @@
 
 CrossVal Orders & Settlements is a full-stack take-home application for creating customer orders, recording partial or full payments, and monitoring outstanding balances through a polished B2B finance dashboard.
 
-The monorepo, MongoDB, authentication, and order CRUD foundations are implemented. The workspace contains a Next.js web app, Express API, shared contracts package, React Query session state, typed MongoDB collections, strict database validators, named indexes, migrations, opaque database-backed sessions, owned order CRUD, and Atlas integration tests. Payment writes and product dashboard workflows begin in Phase 5 onward.
+The monorepo, MongoDB, authentication, order CRUD, atomic payments, and Align UI application shell are implemented. The workspace includes a Next.js web app, Express API, shared contracts, React Query server state, strict MongoDB validators, owned order/payment APIs, and Atlas concurrency tests. The current responsive UI exposes an account summary, searchable/filterable orders, order details, payment history, and safe payment recording.
 
 ## Product objective
 
@@ -171,6 +171,8 @@ pnpm build
 - API liveness and structured not-found behavior covered by tests.
 - The configured development database has versioned validators/indexes and six non-sensitive seed orders.
 - Phase 4 owned order CRUD is implemented: server-authored totals, derived statuses, list/search/filter/sort/pagination, summary aggregation, order detail, and conditional unpaid edit/delete.
-- Payment behavior and the product dashboard have not started.
+- Phase 5 atomic payments are implemented with idempotent replay, overpayment protection, two-client Atlas concurrency coverage, and essential payment UI.
+- Phase 6 establishes local Align UI-style primitives, a responsive authenticated shell, redesigned authentication, operational dashboard, detail hierarchy, and an accessible Radix payment modal.
+- URL-backed/server-backed dashboard controls and the order create/edit frontend remain later phases.
 
-The next planned step is Phase 5 in [ROADMAP.md](ROADMAP.md), after explicit approval to begin atomic payment recording and overpayment protection.
+The next planned step is Phase 7 in [ROADMAP.md](ROADMAP.md), after explicit approval to connect dashboard controls to server-backed URL state and pagination.

@@ -3,6 +3,7 @@ import type {
   OrderLineItem,
   OrderListItem,
   OrderPayment,
+  RecordPaymentResult,
 } from "@crossval/contracts";
 
 import type {
@@ -59,3 +60,35 @@ export const toOrderDetail = (
     .sort((left, right) => right.createdAt.getTime() - left.createdAt.getTime())
     .map(toOrderPayment),
 });
+
+export const toRecordPaymentResult = (
+  order: OrderDocument,
+  payment: PaymentDocument,
+): RecordPaymentResult => {
+  const paymentIndex = order.payments.findIndex((candidate) =>
+    candidate._id.equals(payment._id),
+  );
+  const committedPaymentCount = paymentIndex + 1;
+  const paidAmountCents = order.payments
+    .slice(0, committedPaymentCount)
+    .reduce((total, candidate) => total + candidate.amountCents, 0);
+  const balanceDueCents = order.totalAmountCents - paidAmountCents;
+
+  return {
+    payment: toOrderPayment(payment),
+    order: {
+      id: order._id.toHexString(),
+      status: deriveOrderStatus(
+        {
+          balanceDueCents,
+          dueDate: order.dueDate,
+          paymentCount: committedPaymentCount,
+        },
+        payment.createdAt.toISOString().slice(0, 10),
+      ),
+      totalAmountCents: order.totalAmountCents,
+      paidAmountCents,
+      balanceDueCents,
+    },
+  };
+};

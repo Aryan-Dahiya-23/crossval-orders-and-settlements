@@ -336,6 +336,7 @@ _id = requested order
 userId = authenticated user
 balanceDueCents >= requested amount
 no payment element has this idempotency key
+paymentCount is less than 1,000
 ```
 
 Atomic update:
@@ -364,6 +365,7 @@ If no document matches, perform one targeted diagnostic read to distinguish:
 - zero balance → `422 ORDER_ALREADY_PAID`;
 - insufficient current balance → `422 PAYMENT_EXCEEDS_BALANCE` with current maximum;
 - unexpected write failure → safe `503` or `500` according to retryability.
+- full bounded ledger → `422 PAYMENT_LIMIT_REACHED`.
 
 The diagnostic read explains the failure; it does not authorize a second financial write without reapplying the atomic predicate.
 

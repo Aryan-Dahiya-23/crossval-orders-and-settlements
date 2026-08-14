@@ -225,6 +225,10 @@ The product direction borrows patterns, not code:
 
 The resulting interface must remain its own coherent product and comply with Align UI conventions.
 
+## Phase 6 implementation note
+
+The implemented foundation follows this specification with a stable 248 px desktop sidebar, a mobile header and dismissible navigation drawer, consistent page headers, compact summary cards, dense desktop tables, purpose-built mobile order cards, text-and-color status badges, and a Radix-backed payment modal. Align UI-style primitives live locally under `apps/web/components/ui`; none of the three reference repositories is imported or required at runtime. URL-backed filtering, sorting, result counts, and pagination remain Phase 7 scope.
+
 ## Out of scope
 
 - data visualization added only for decoration;

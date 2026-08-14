@@ -4,7 +4,7 @@
 
 This matrix maps each product requirement to its design location and verification. It is the quickest way to detect a requirement that is described but neither owned nor tested.
 
-Phase 4 status: AUTH-01 and AUTH-02 remain verified by real-MongoDB integration tests plus a live browser smoke. AUTH-03 and ORD-01 through ORD-10 are implemented and verified for the order surface. STA-01 through STA-05 are implemented in shared domain/mapping/query helpers and verified by unit plus Atlas integration tests. Payment ownership and payment workflow requirements remain Phase 5 work; frontend order/dashboard requirements remain later phases.
+Phase 5 status: AUTH-01 through AUTH-03, ORD-01 through ORD-10, PAY-01 through PAY-06, and STA-01 through STA-05 are implemented. Payment invariants are verified by unit tests and eight Atlas integration tests using two independent clients. The essential dashboard/detail/payment surfaces and React Query mutation policy are implemented; full dashboard controls, create/edit UI, component automation, and final visual/accessibility verification remain later phases.
 
 | ID      | Requirement                                             | Design source                                | API/data surface                           | Verification                          |
 | ------- | ------------------------------------------------------- | -------------------------------------------- | ------------------------------------------ | ------------------------------------- |

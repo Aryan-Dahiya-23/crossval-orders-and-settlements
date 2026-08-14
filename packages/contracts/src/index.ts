@@ -46,11 +46,16 @@ export const apiErrorCodes = [
   "INTERNAL_SERVER_ERROR",
   "INVALID_CREDENTIALS",
   "INVALID_RESOURCE_ID",
+  "IDEMPOTENCY_KEY_REUSED",
   "MALFORMED_JSON",
   "ORIGIN_NOT_ALLOWED",
   "ORDER_LOCKED_AFTER_PAYMENT",
   "ORDER_NOT_FOUND",
+  "ORDER_ALREADY_PAID",
   "PAYLOAD_TOO_LARGE",
+  "PAYMENT_EXCEEDS_BALANCE",
+  "PAYMENT_LIMIT_REACHED",
+  "PAYMENT_TEMPORARILY_UNAVAILABLE",
   "RATE_LIMITED",
   "REGISTRATION_DISABLED",
   "ROUTE_NOT_FOUND",
@@ -67,6 +72,7 @@ export interface ApiErrorResponse {
     details?: {
       fields?: Record<string, string[]>;
       retryAfterSeconds?: number;
+      remainingAmountCents?: number;
     };
     requestId: string;
   };

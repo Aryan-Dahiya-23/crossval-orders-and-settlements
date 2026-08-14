@@ -246,6 +246,8 @@ Phase 3 implements this boundary in `apps/api/src/modules/auth`, with shared req
 
 Phase 4 implements the owned order boundary in `apps/api/src/modules/orders`: pure money/date/status helpers remain independent of Express and MongoDB, while the service uses ownership-led driver queries and conditional `paymentCount: 0` writes for edits and deletion. Static order routes are registered before `/:orderId`, and all order routes reuse the established session middleware.
 
+Phase 5 extends the same module with the nested payment route. Payment preparation and request fingerprinting remain pure; the service performs one ownership-, balance-, capacity-, and idempotency-scoped `findOneAndUpdate`, then uses an owned diagnostic read only to explain an unmatched predicate. The web consumes committed state through React Query and never applies an optimistic financial update.
+
 The primary deployment presents the API through the web origin, allowing `SameSite=Lax` cookies and simpler CSRF controls.
 
 ## 11. API and contract architecture

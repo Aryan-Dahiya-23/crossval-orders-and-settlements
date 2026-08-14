@@ -4,15 +4,25 @@ import type {
   OrderListQuery,
   OrderListResponse,
   OrderSummaryResponse,
+  RecordPaymentRequest,
+  RecordPaymentResult,
   ReplaceOrderRequest,
 } from "@crossval/contracts";
-import { ObjectId, type Db } from "mongodb";
+import { MongoError, ObjectId, type Db } from "mongodb";
 
 import { getCollections } from "../../db/collections.js";
 import type { OrderDocument } from "../../db/documents.js";
 import { AppError } from "../../errors/app-error.js";
-import { getUtcDateOnly, prepareOrderDraft } from "./domain.js";
-import { toOrderDetail, toOrderListItem } from "./mapper.js";
+import {
+  getUtcDateOnly,
+  prepareOrderDraft,
+  preparePaymentDraft,
+} from "./domain.js";
+import {
+  toOrderDetail,
+  toOrderListItem,
+  toRecordPaymentResult,
+} from "./mapper.js";
 import {
   buildOrderListFilter,
   buildOrderSort,
@@ -26,6 +36,19 @@ interface SummaryAggregationResult {
   collectedAmountCents: number;
   overdueAmountCents: number;
 }
+
+export interface RecordPaymentServiceResult {
+  data: RecordPaymentResult;
+  replayed: boolean;
+}
+
+const maximumPaymentsPerOrder = 1_000;
+const retryableMongoErrorNames = new Set([
+  "MongoNetworkError",
+  "MongoNetworkTimeoutError",
+  "MongoOperationTimeoutError",
+  "MongoServerSelectionError",
+]);
 
 export class OrderService {
   public constructor(
@@ -201,6 +224,127 @@ export class OrderService {
     }
   }
 
+  public async recordPayment(
+    userId: ObjectId,
+    orderId: ObjectId,
+    input: RecordPaymentRequest,
+    idempotencyKey: string,
+  ): Promise<RecordPaymentServiceResult> {
+    try {
+      const timestamp = this.now();
+      const draft = this.preparePayment(input, getUtcDateOnly(timestamp));
+      const orders = getCollections(this.database).orders;
+      const existingOrder = await orders.findOne({
+        _id: orderId,
+        userId,
+        "payments.idempotencyKey": idempotencyKey,
+      });
+      const existingPayment = existingOrder?.payments.find(
+        (payment) => payment.idempotencyKey === idempotencyKey,
+      );
+      if (existingOrder !== null && existingOrder !== undefined) {
+        if (existingPayment === undefined) {
+          throw this.paymentTemporarilyUnavailable();
+        }
+        return this.replayOrConflict(
+          existingOrder,
+          existingPayment,
+          draft.requestFingerprint,
+        );
+      }
+
+      const payment = {
+        _id: new ObjectId(),
+        amountCents: draft.amountCents,
+        paymentDate: draft.paymentDate,
+        note: draft.note,
+        idempotencyKey,
+        requestFingerprint: draft.requestFingerprint,
+        createdAt: timestamp,
+      };
+      const updatedOrder = await orders.findOneAndUpdate(
+        {
+          _id: orderId,
+          userId,
+          balanceDueCents: { $gte: draft.amountCents },
+          paymentCount: { $lt: maximumPaymentsPerOrder },
+          payments: { $not: { $elemMatch: { idempotencyKey } } },
+        },
+        {
+          $inc: {
+            balanceDueCents: -draft.amountCents,
+            paymentCount: 1,
+          },
+          $push: { payments: payment },
+          $set: { updatedAt: timestamp },
+        },
+        { returnDocument: "after" },
+      );
+
+      if (updatedOrder !== null) {
+        return {
+          data: toRecordPaymentResult(updatedOrder, payment),
+          replayed: false,
+        };
+      }
+
+      const currentOrder = await orders.findOne({ _id: orderId, userId });
+      if (currentOrder === null) {
+        throw this.orderNotFound();
+      }
+
+      const replayedPayment = currentOrder.payments.find(
+        (candidate) => candidate.idempotencyKey === idempotencyKey,
+      );
+      if (replayedPayment !== undefined) {
+        return this.replayOrConflict(
+          currentOrder,
+          replayedPayment,
+          draft.requestFingerprint,
+        );
+      }
+      if (currentOrder.paymentCount >= maximumPaymentsPerOrder) {
+        throw new AppError({
+          status: 422,
+          code: "PAYMENT_LIMIT_REACHED",
+          message: "This order has reached the maximum payment count.",
+        });
+      }
+      if (currentOrder.balanceDueCents === 0) {
+        throw new AppError({
+          status: 422,
+          code: "ORDER_ALREADY_PAID",
+          message: "This order has already been paid in full.",
+          details: { remainingAmountCents: 0 },
+        });
+      }
+      if (currentOrder.balanceDueCents < draft.amountCents) {
+        throw new AppError({
+          status: 422,
+          code: "PAYMENT_EXCEEDS_BALANCE",
+          message: "Payment amount exceeds the order's remaining balance.",
+          details: {
+            remainingAmountCents: currentOrder.balanceDueCents,
+          },
+        });
+      }
+
+      throw this.paymentTemporarilyUnavailable();
+    } catch (error) {
+      if (error instanceof AppError) {
+        throw error;
+      }
+      if (
+        error instanceof MongoError &&
+        (retryableMongoErrorNames.has(error.name) ||
+          error.hasErrorLabel("RetryableWriteError"))
+      ) {
+        throw this.paymentTemporarilyUnavailable();
+      }
+      throw error;
+    }
+  }
+
   private prepareDraft(input: CreateOrderRequest) {
     try {
       return prepareOrderDraft(input);
@@ -211,6 +355,46 @@ export class OrderService {
       }
       throw error;
     }
+  }
+
+  private preparePayment(input: RecordPaymentRequest, todayUtc: string) {
+    try {
+      return preparePaymentDraft(input, todayUtc);
+    } catch (error) {
+      const appError = asOrderDomainValidationError(error);
+      if (appError !== null) {
+        throw appError;
+      }
+      throw error;
+    }
+  }
+
+  private replayOrConflict(
+    order: OrderDocument,
+    payment: OrderDocument["payments"][number],
+    requestFingerprint: string,
+  ): RecordPaymentServiceResult {
+    if (payment.requestFingerprint !== requestFingerprint) {
+      throw new AppError({
+        status: 409,
+        code: "IDEMPOTENCY_KEY_REUSED",
+        message:
+          "This idempotency key was already used for a different payment request.",
+      });
+    }
+    return {
+      data: toRecordPaymentResult(order, payment),
+      replayed: true,
+    };
+  }
+
+  private paymentTemporarilyUnavailable(): AppError {
+    return new AppError({
+      status: 503,
+      code: "PAYMENT_TEMPORARILY_UNAVAILABLE",
+      message:
+        "Payment recording is temporarily unavailable. Retry with the same idempotency key.",
+    });
   }
 
   private async throwConditionalMiss(

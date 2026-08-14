@@ -58,7 +58,7 @@ Phase 3 route status:
 
 - `/` redirects to `/orders`.
 - `/login` and `/register` use public-only boundaries and redirect an authenticated viewer to `/orders`.
-- `/orders` uses a client authentication boundary and currently renders an explicit Phase 4 placeholder after authentication.
+- `/orders` uses a client authentication boundary and renders the Phase 6 operational dashboard inside the responsive application shell.
 - Product order creation, detail, edit, dashboard data, and navigation shell are not implemented yet.
 
 ## Component boundaries
@@ -150,6 +150,10 @@ Rules:
 | Record payment | Replace or invalidate detail; invalidate all lists and summaries                | Never optimistic because concurrency can reject the payment          |
 
 Payment mutation results must come from the committed server response. The UI must not locally subtract a payment from a balance before commit.
+
+Phase 5 implementation provides the first concrete order query-key factory, account summary/recent-order reads, order detail, and payment mutation. The dialog retains a UUID for the same normalized logical attempt, creates a new key when the form materially changes, never retries automatically, and invalidates detail/list/summary keys only after a committed response. Full URL-backed filters and pagination remain Phase 7 work.
+
+Phase 6 adds the local presentation foundation: Tailwind CSS utilities, Radix behavior, Remix icons, and focused Align UI-style button, input, modal, badge, alert, and skeleton primitives. The shell, auth screens, dashboard, detail view, and settlement modal use those primitives consistently. Dashboard search and status controls currently filter the loaded page for immediate usability; Phase 7 moves applied filter, sort, and pagination state into the URL and query keys so the API remains authoritative across the complete dataset.
 
 ### Invalidation strategy
 

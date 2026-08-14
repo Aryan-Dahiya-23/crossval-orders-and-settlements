@@ -14,28 +14,28 @@ This is a release gate, not a progress estimate. Check an item only after verify
 
 ## Domain correctness
 
-- [ ] All money is represented as integer cents outside display/input formatting.
-- [ ] The server calculates line totals, order total, paid amount, and balance.
+- [x] All money is represented as integer cents outside display/input formatting.
+- [x] The server calculates line totals, order total, paid amount, and balance.
 - [ ] `totalAmountCents = sum(line totals)` is preserved.
 - [ ] `balanceDueCents = totalAmountCents - sum(payments)` is preserved.
-- [ ] Balance can never be negative.
-- [ ] Status is derived consistently and not stored as mutable truth.
+- [x] Balance can never be negative through the implemented payment path.
+- [x] Status is derived consistently and not stored as mutable truth.
 - [ ] Due-today is not considered overdue.
 - [ ] Paid status wins regardless of an old due date.
-- [ ] Orders with payments cannot be edited or deleted.
-- [ ] Payments cannot be edited or deleted.
+- [x] Orders with payments cannot be edited or deleted.
+- [x] Payments cannot be edited or deleted.
 
 ## Concurrency and atomicity
 
-- [ ] The order embeds its bounded payment ledger and settlement projections.
-- [ ] Payment `findOneAndUpdate` matches `_id`, authenticated `userId`, sufficient balance, and absence of the idempotency key.
-- [ ] Balance decrement, payment-count increment, and payment append occur in one atomic document update.
-- [ ] Update and delete use `paymentCount: 0` predicates against the same order document.
-- [ ] Payment idempotency is enforced by the atomic predicate and fingerprint replay logic, not incorrectly attributed to a unique multikey index.
-- [ ] Duplicate-key replay behavior matches the API documentation.
+- [x] The order embeds its bounded payment ledger and settlement projections.
+- [x] Payment `findOneAndUpdate` matches `_id`, authenticated `userId`, sufficient balance, and absence of the idempotency key.
+- [x] Balance decrement, payment-count increment, and payment append occur in one atomic document update.
+- [x] Update and delete use `paymentCount: 0` predicates against the same order document.
+- [x] Payment idempotency is enforced by the atomic predicate and fingerprint replay logic, not incorrectly attributed to a unique multikey index.
+- [x] Duplicate-key replay behavior matches the API documentation.
 - [ ] Concurrent 7,000 + 6,000 cent requests against a 10,000-cent balance cannot both commit.
-- [ ] Concurrent 4,000 + 6,000 cent requests can safely settle the order.
-- [ ] A payment-vs-edit/delete race cannot produce an invalid state.
+- [x] Concurrent 4,000 + 6,000 cent requests can safely settle the order.
+- [x] A payment-vs-edit/delete race cannot produce an invalid state.
 
 ## API
 
@@ -68,14 +68,14 @@ This is a release gate, not a progress estimate. Check an item only after verify
 - [x] React Query is the only general-purpose server-state store.
 - [x] Implemented auth query keys come from a stable factory and include all response-changing parameters.
 - [ ] List filters and pagination are URL-backed.
-- [ ] Payment mutations are not optimistic.
-- [ ] Successful order/payment mutations invalidate or seed the documented caches.
+- [x] Payment mutations are not optimistic.
+- [x] Successful payment mutations invalidate the documented detail, list, and summary caches.
 - [x] Logout and session loss clear private cached data.
 - [x] Query functions use cancellation signals.
 - [x] Unauthorized and validation failures are not blindly retried.
 - [ ] Initial load, background refresh, empty, filtered-empty, error, and conflict states are distinct.
 - [x] Implemented authentication forms render client and server validation accessibly.
-- [ ] Money and dates render without floating-point or timezone errors.
+- [x] Implemented money and date-only values render through centralized formatters without timezone shifts.
 
 ## UI and accessibility
 

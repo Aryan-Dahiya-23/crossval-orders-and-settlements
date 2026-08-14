@@ -65,3 +65,10 @@ export const signupRateLimit: RequestHandler = rateLimit({
   limit: 20,
   keyGenerator: (request) => ipKeyGenerator(request.ip ?? ""),
 });
+
+export const paymentRateLimit: RequestHandler = rateLimit({
+  ...sharedOptions,
+  windowMs: 15 * 60_000,
+  limit: 60,
+  keyGenerator: (request) => ipKeyGenerator(request.ip ?? ""),
+});

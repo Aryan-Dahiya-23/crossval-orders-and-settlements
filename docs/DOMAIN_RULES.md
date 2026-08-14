@@ -261,6 +261,7 @@ No implementation may use a read-validate-write sequence whose final update omit
 - Every payment caller sends an `Idempotency-Key` header; omission is a validation error.
 - Recommended key format is a UUID generated per logical submission.
 - Scope is `(orderId, idempotencyKey)`.
+- UUID keys are trimmed and normalized to lowercase before matching.
 - The normalized payload is fingerprinted from amount, payment date, and normalized note.
 - A unique multikey index cannot guarantee uniqueness within one document's payment array, so the conditional update enforces the rule.
 
@@ -273,6 +274,8 @@ Behavior:
 | Same key and different fingerprint | Return 409 `IDEMPOTENCY_KEY_REUSED`                    |
 
 The UI retains the same key while retrying an ambiguous network/server failure. A materially edited form begins a new logical attempt and receives a new key.
+
+An order accepts at most 1,000 embedded payments in the MVP. The atomic predicate enforces remaining ledger capacity; a full ledger returns `422 PAYMENT_LIMIT_REACHED` without changing financial state.
 
 ## 14. Dashboard aggregates
 

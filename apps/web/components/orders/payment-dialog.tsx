@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { OrderDetail } from "@crossval/contracts";
 import { RiMoneyDollarCircleLine } from "@remixicon/react";
 import { useState } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import {
@@ -17,6 +17,7 @@ import { formatUsd } from "@/lib/format";
 import { cn } from "@/utils/cn";
 import { Alert } from "../ui/alert";
 import * as Button from "../ui/button";
+import { DatePicker } from "../ui/date-picker";
 import { Field, Input, Textarea } from "../ui/input";
 import * as Modal from "../ui/modal";
 import * as StatusBadge from "../ui/status-badge";
@@ -280,13 +281,24 @@ export function PaymentDialog({
               htmlFor="payment-date"
               error={form.formState.errors.paymentDate?.message}
             >
-              <Input
-                id="payment-date"
-                type="date"
-                max={todayUtc}
-                hasError={form.formState.errors.paymentDate !== undefined}
-                aria-invalid={form.formState.errors.paymentDate !== undefined}
-                {...form.register("paymentDate")}
+              <Controller
+                control={form.control}
+                name="paymentDate"
+                render={({ field }) => (
+                  <DatePicker
+                    id="payment-date"
+                    value={field.value}
+                    onChange={field.onChange}
+                    maxDate={todayUtc}
+                    placeholder="Select payment date"
+                    hasError={form.formState.errors.paymentDate !== undefined}
+                    presets={[
+                      { label: "Today", days: 0 },
+                      { label: "Yesterday", days: -1 },
+                      { label: "3 days ago", days: -3 },
+                    ]}
+                  />
+                )}
               />
             </Field>
 

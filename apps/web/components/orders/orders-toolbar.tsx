@@ -123,25 +123,28 @@ export function OrdersToolbar({
       </div>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        <label className="flex items-center gap-2 text-paragraph-xs text-text-sub-600">
+        <div className="flex items-center gap-2 text-paragraph-xs text-text-sub-600">
           <span className="shrink-0 font-medium">Sort by</span>
-          <Select.Select
-            aria-label="Sort orders"
+          <Select.Root
+            size="small"
             value={sortValue}
-            onChange={(event: React.ChangeEvent<HTMLSelectElement>) => {
-              const selected = sortOptions.find(
-                (option) => option.value === event.target.value,
-              );
+            onValueChange={(val) => {
+              const selected = sortOptions.find((option) => option.value === val);
               if (selected) onSortChange(selected.sort, selected.direction);
             }}
           >
-            {sortOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </Select.Select>
-        </label>
+            <Select.Trigger aria-label="Sort orders" className="w-[175px]">
+              <Select.Value />
+            </Select.Trigger>
+            <Select.Content className="w-[190px]">
+              {sortOptions.map((option) => (
+                <Select.Item key={option.value} value={option.value}>
+                  {option.label}
+                </Select.Item>
+              ))}
+            </Select.Content>
+          </Select.Root>
+        </div>
 
         <div className="relative block w-full sm:w-[260px]">
           <label className="sr-only" htmlFor="orders-customer-search">

@@ -10,15 +10,19 @@ import {
   RiArrowRightLine,
   RiBankCardLine,
   RiCheckboxCircleLine,
+  RiEyeLine,
+  RiFileCopyLine,
   RiFileList3Line,
   RiFundsLine,
+  RiMoneyDollarCircleLine,
+  RiMoreLine,
   RiRefreshLine,
   RiSearchLine,
 } from "@remixicon/react";
 
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 
 import {
   defaultOrderListQuery,
@@ -33,6 +37,7 @@ import { AppShell } from "../layout/app-shell";
 import { PageHeader } from "../layout/page-header";
 import { Alert } from "../ui/alert";
 import * as Button from "../ui/button";
+import * as Dropdown from "../ui/dropdown";
 import { PageLoadingState, TableLoadingState } from "../ui/loading-state";
 import * as Table from "../ui/table";
 import { cn } from "@/utils/cn";
@@ -304,6 +309,59 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
   );
 }
 
+function OrderRowActionMenu({ order }: { order: OrderListItem }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyId = () => {
+    void navigator.clipboard.writeText(order.displayId);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <Dropdown.Root>
+      <Dropdown.Trigger asChild>
+        <button
+          type="button"
+          aria-label={`Actions for order ${order.displayId}`}
+          className="inline-flex size-8 items-center justify-center rounded-lg text-text-soft-400 outline-none transition hover:bg-bg-weak-50 hover:text-text-strong-950 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
+          onClick={(e) => e.stopPropagation()}
+        >
+          <RiMoreLine className="size-4" />
+        </button>
+      </Dropdown.Trigger>
+      <Dropdown.Content align="end" className="w-48">
+        <Dropdown.Item asChild>
+          <Link href={`/orders/${order.id}`} className="cursor-pointer">
+            <Dropdown.ItemIcon as={RiEyeLine} />
+            <span>View details</span>
+          </Link>
+        </Dropdown.Item>
+
+        {order.balanceDueCents > 0 && (
+          <Dropdown.Item asChild>
+            <Link href={`/orders/${order.id}`} className="cursor-pointer">
+              <Dropdown.ItemIcon
+                as={RiMoneyDollarCircleLine}
+                className="text-primary-base"
+              />
+              <span>Record payment</span>
+            </Link>
+          </Dropdown.Item>
+        )}
+
+        <Dropdown.Item
+          onSelect={handleCopyId}
+          className="cursor-pointer"
+        >
+          <Dropdown.ItemIcon as={RiFileCopyLine} />
+          <span>{copied ? "Copied ID!" : "Copy Order ID"}</span>
+        </Dropdown.Item>
+      </Dropdown.Content>
+    </Dropdown.Root>
+  );
+}
+
 function OrderRows({ orders }: { orders: OrderListItem[] }) {
   return (
     <>
@@ -317,7 +375,7 @@ function OrderRows({ orders }: { orders: OrderListItem[] }) {
               <Table.Head className="text-right">Total</Table.Head>
               <Table.Head className="text-right">Paid</Table.Head>
               <Table.Head className="text-right">Balance</Table.Head>
-              <Table.Head className="w-14 pr-5 text-right" aria-label="Open order" />
+              <Table.Head className="w-20 pr-5 text-right" aria-label="Actions" />
             </Table.Row>
           </Table.Header>
           <Table.Body>
@@ -350,13 +408,16 @@ function OrderRows({ orders }: { orders: OrderListItem[] }) {
                   {formatUsd(order.balanceDueCents)}
                 </Table.Cell>
                 <Table.Cell className="pr-5 text-right">
-                  <Link
-                    className="inline-flex size-8 items-center justify-center rounded-lg text-text-soft-400 outline-none transition group-hover/row:text-text-strong-950 hover:bg-bg-soft-200/60 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
-                    href={`/orders/${order.id}`}
-                    aria-label={`Open ${order.displayId}`}
-                  >
-                    <RiArrowRightLine className="size-4" />
-                  </Link>
+                  <div className="flex items-center justify-end gap-1">
+                    <Link
+                      className="inline-flex size-8 items-center justify-center rounded-lg text-text-soft-400 outline-none transition group-hover/row:text-text-strong-950 hover:bg-bg-soft-200/60 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
+                      href={`/orders/${order.id}`}
+                      aria-label={`Open ${order.displayId}`}
+                    >
+                      <RiArrowRightLine className="size-4" />
+                    </Link>
+                    <OrderRowActionMenu order={order} />
+                  </div>
                 </Table.Cell>
               </Table.Row>
             ))}
@@ -366,35 +427,39 @@ function OrderRows({ orders }: { orders: OrderListItem[] }) {
 
       <div className="divide-y divide-stroke-soft-200 md:hidden">
         {orders.map((order) => (
-          <Link
+          <div
             key={order.id}
-            href={`/orders/${order.id}`}
-            className="block p-4 sm:p-5 outline-none transition hover:bg-bg-weak-50/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stroke-strong-950"
+            className="block p-4 sm:p-5 outline-none transition hover:bg-bg-weak-50/50"
           >
             <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <p className="truncate text-label-sm font-semibold text-text-strong-950">
+              <Link href={`/orders/${order.id}`} className="min-w-0 flex-1 group">
+                <p className="truncate text-label-sm font-semibold text-text-strong-950 group-hover:underline">
                   {order.customerName}
                 </p>
                 <p className="mt-0.5 font-mono text-paragraph-xs text-text-soft-400">
                   {order.displayId}
                 </p>
+              </Link>
+              <div className="flex items-center gap-2">
+                <StatusBadge status={order.status} />
+                <OrderRowActionMenu order={order} />
               </div>
-              <StatusBadge status={order.status} />
             </div>
-            <dl className="mt-3.5 grid grid-cols-3 gap-3 rounded-xl bg-bg-weak-50/60 p-3 ring-1 ring-inset ring-stroke-soft-200/50">
-              <MobileMetric label="Due" value={formatDateOnly(order.dueDate)} />
-              <MobileMetric
-                label="Total"
-                value={formatUsd(order.totalAmountCents)}
-              />
-              <MobileMetric
-                label="Balance"
-                value={formatUsd(order.balanceDueCents)}
-                strong
-              />
-            </dl>
-          </Link>
+            <Link href={`/orders/${order.id}`}>
+              <dl className="mt-3.5 grid grid-cols-3 gap-3 rounded-xl bg-bg-weak-50/60 p-3 ring-1 ring-inset ring-stroke-soft-200/50">
+                <MobileMetric label="Due" value={formatDateOnly(order.dueDate)} />
+                <MobileMetric
+                  label="Total"
+                  value={formatUsd(order.totalAmountCents)}
+                />
+                <MobileMetric
+                  label="Balance"
+                  value={formatUsd(order.balanceDueCents)}
+                  strong
+                />
+              </dl>
+            </Link>
+          </div>
         ))}
       </div>
     </>

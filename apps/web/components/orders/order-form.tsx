@@ -13,7 +13,9 @@ import {
 } from "@remixicon/react";
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useFieldArray, useForm, useWatch } from "react-hook-form";
+import { Controller, useFieldArray, useForm, useWatch } from "react-hook-form";
+
+import { DatePicker } from "../ui/date-picker";
 
 import {
   centsToDecimalString,
@@ -188,12 +190,25 @@ export function OrderForm({
             hint="Date-only format (YYYY-MM-DD) used for overdue status calculation."
             required
           >
-            <Input
-              id="dueDate"
-              type="date"
-              hasError={form.formState.errors.dueDate !== undefined}
-              aria-invalid={form.formState.errors.dueDate !== undefined}
-              {...form.register("dueDate")}
+            <Controller
+              control={form.control}
+              name="dueDate"
+              render={({ field }) => (
+                <DatePicker
+                  id="dueDate"
+                  value={field.value}
+                  onChange={field.onChange}
+                  placeholder="Select due date"
+                  hasError={form.formState.errors.dueDate !== undefined}
+                  presets={[
+                    { label: "Today", days: 0 },
+                    { label: "+7 days", days: 7 },
+                    { label: "+14 days", days: 14 },
+                    { label: "+30 days", days: 30 },
+                    { label: "+60 days", days: 60 },
+                  ]}
+                />
+              )}
             />
           </Field>
         </div>

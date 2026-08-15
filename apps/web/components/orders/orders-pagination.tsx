@@ -45,24 +45,29 @@ export function OrdersPagination({
         )}
       </p>
       <div className="flex flex-wrap items-center gap-3">
-        <label className="mr-auto flex items-center gap-2 text-paragraph-xs text-text-sub-600 sm:mr-2">
+        <div className="mr-auto flex items-center gap-2 text-paragraph-xs text-text-sub-600 sm:mr-2">
           <span className="font-medium text-text-sub-600">Rows</span>
-          <div className="w-20">
-            <Select.Select
-              aria-label="Orders per page"
+          <div className="w-[78px]">
+            <Select.Root
+              size="xsmall"
               value={String(requestedPageSize)}
-              onChange={(event: React.ChangeEvent<HTMLSelectElement>) =>
+              onValueChange={(value) =>
                 onPageSizeChange(
-                  Number(event.target.value) as OrderListQuery["pageSize"],
+                  Number(value) as OrderListQuery["pageSize"],
                 )
               }
             >
-              <option value="10">10</option>
-              <option value="25">25</option>
-              <option value="50">50</option>
-            </Select.Select>
+              <Select.Trigger aria-label="Orders per page" className="w-full">
+                <Select.Value />
+              </Select.Trigger>
+              <Select.Content className="min-w-[80px]">
+                <Select.Item value="10">10</Select.Item>
+                <Select.Item value="25">25</Select.Item>
+                <Select.Item value="50">50</Select.Item>
+              </Select.Content>
+            </Select.Root>
           </div>
-        </label>
+        </div>
         <span className="min-w-20 text-center text-paragraph-xs font-medium tabular-nums text-text-sub-600">
           {isPlaceholderData
             ? `Page ${requestedPage} · Updating…`

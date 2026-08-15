@@ -19,6 +19,7 @@ import {
   getOrderDetail,
   getOrders,
   getOrderSummary,
+  populateSampleOrders,
   recordPayment,
   replaceOrder,
   type ReplaceOrderParams,
@@ -122,4 +123,17 @@ export const useRecordPayment = (orderId: string) => {
     },
   });
 };
+
+export const usePopulateSampleOrders = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => populateSampleOrders(),
+    onSuccess: async () => {
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: orderKeys.all }),
+      ]);
+    },
+  });
+};
+
 

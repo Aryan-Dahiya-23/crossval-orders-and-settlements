@@ -55,6 +55,12 @@ export const createOrdersRouter = (options: OrdersRouterOptions): Router => {
       );
   });
 
+  router.post("/sample", async (request, response) => {
+    const context = requireAuthenticationContext(request);
+    const result = await orderService.populateSample(context.userId);
+    response.status(201).json({ data: result });
+  });
+
   router.post("/", async (request, response) => {
     const context = requireAuthenticationContext(request);
     const input = parseOrderInput(createOrderRequestSchema, request.body);

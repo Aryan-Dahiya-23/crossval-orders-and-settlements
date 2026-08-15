@@ -17,6 +17,20 @@ This application is built to satisfy the **Orders and Settlements** take-home as
 8. [Sample Scenario Verification Flow](#sample-scenario-verification-flow)
 9. [Automated Test Suite](#automated-test-suite)
 
+## Live Deployment & Reviewer Quick Start
+
+* **Live Web App**: [https://crossval-orders-and-settlements-web.vercel.app/](https://crossval-orders-and-settlements-web.vercel.app/)
+
+### 3-Minute Reviewer Evaluation Walkthrough
+1. Open the live app: [https://crossval-orders-and-settlements-web.vercel.app/](https://crossval-orders-and-settlements-web.vercel.app/)
+2. Click **"Create an account"** and sign up with any email and password ($\ge$ 6 characters) to receive a private, isolated workspace.
+3. On the dashboard, click **"Load sample data"** on the top card to instantly populate 6 realistic demo orders covering every financial status (`pending`, `partially_paid`, `paid`, `overdue`, and `paid-after-overdue`).
+4. Or run the official assignment flow manually:
+   * **Create order**: Click **"New order"**, enter Customer Name (`Acme Corp`), Due Date (7 days out), and 2 line items of `$500.00` (Total: `$1,000.00`).
+   * **Partial payment**: Click **"Record payment"** and submit `$400.00` $\to$ Status becomes `Partially paid`, Amount Due `$600.00`, and "Edit order" / "Delete" lock permanently.
+   * **Full settlement**: Click **"Record payment"** and submit `$600.00` $\to$ Status becomes `Paid`, Balance Due `$0.00`, and badge displays `Paid in full`.
+   * **Overpayment rejection**: Submit another `$1.00` $\to$ Rejected with actionable error: max allowed payment is `$0.00`.
+
 ---
 
 ## Core Features & Invariants

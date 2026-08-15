@@ -194,3 +194,12 @@ export interface OrderSummaryResponse {
 export interface RecordPaymentResponse {
   data: RecordPaymentResult;
 }
+
+export interface PopulateSampleResult {
+  ordersCreated: number;
+}
+
+export interface PopulateSampleResponse {
+  data: PopulateSampleResult;
+}
+

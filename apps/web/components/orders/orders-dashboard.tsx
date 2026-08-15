@@ -36,6 +36,7 @@ import { Skeleton } from "../ui/skeleton";
 import * as Table from "../ui/table";
 import { OrdersPagination } from "./orders-pagination";
 import { OrdersToolbar } from "./orders-toolbar";
+import { SampleDataCTA } from "./sample-data-cta";
 import { StatusBadge } from "./status-badge";
 
 export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
@@ -100,6 +101,11 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
             </Link>
           </Button.Root>
         }
+      />
+
+      <SampleDataCTA
+        hasOrders={Boolean(summary.data?.data.totalOrders && summary.data.data.totalOrders > 0)}
+        className="mt-6"
       />
 
       {summary.isPending ? (

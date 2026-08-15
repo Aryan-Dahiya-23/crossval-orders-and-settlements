@@ -5,6 +5,8 @@ import type {
   OrderListQuery,
   OrderListResponse,
   OrderSummaryResponse,
+  PopulateSampleResponse,
+  PopulateSampleResult,
   RecordPaymentRequest,
   RecordPaymentResponse,
   RecordPaymentResult,
@@ -107,4 +109,13 @@ export const recordPayment = async (
   );
   return response.data;
 };
+
+export const populateSampleOrders = async (): Promise<PopulateSampleResult> => {
+  const response = await apiRequest<PopulateSampleResponse>("/orders/sample", {
+    method: "POST",
+  });
+  return response.data;
+};
+
+
 

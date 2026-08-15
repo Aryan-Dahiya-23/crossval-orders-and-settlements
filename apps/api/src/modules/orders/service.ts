@@ -4,6 +4,7 @@ import type {
   OrderListQuery,
   OrderListResponse,
   OrderSummaryResponse,
+  PopulateSampleResult,
   RecordPaymentRequest,
   RecordPaymentResult,
   ReplaceOrderRequest,
@@ -11,7 +12,11 @@ import type {
 import { MongoError, ObjectId, type Db } from "mongodb";
 
 import { getCollections } from "../../db/collections.js";
-import type { OrderDocument } from "../../db/documents.js";
+import type {
+  LineItemDocument,
+  OrderDocument,
+  PaymentDocument,
+} from "../../db/documents.js";
 import { AppError } from "../../errors/app-error.js";
 import {
   getUtcDateOnly,
@@ -421,6 +426,136 @@ export class OrderService {
       code: "ORDER_LOCKED_AFTER_PAYMENT",
       message: "Order state changed before the request could be completed.",
     });
+  }
+
+  public async populateSample(
+    userId: ObjectId,
+  ): Promise<PopulateSampleResult> {
+    const { orders } = getCollections(this.database);
+
+    const dateOnlyFromOffset = (offsetDays: number): string => {
+      const date = new Date(this.now());
+      date.setUTCHours(0, 0, 0, 0);
+      date.setUTCDate(date.getUTCDate() + offsetDays);
+      return date.toISOString().slice(0, 10);
+    };
+
+    const lineItem = (
+      description: string,
+      quantity: number,
+      unitPriceCents: number,
+      position = 0,
+    ): LineItemDocument => ({
+      _id: new ObjectId(),
+      description,
+      quantity,
+      unitPriceCents,
+      position,
+    });
+
+    const payment = (
+      amountCents: number,
+      paymentDate: string,
+      idempotencyKey: string,
+    ): PaymentDocument => ({
+      _id: new ObjectId(),
+      amountCents,
+      paymentDate,
+      note: "Sample assignment settlement",
+      idempotencyKey,
+      requestFingerprint: "sample".repeat(12).slice(0, 64),
+      createdAt: this.now(),
+    });
+
+    const buildSeedOrder = (input: {
+      customerName: string;
+      dueDate: string;
+      lineItems: LineItemDocument[];
+      payments?: PaymentDocument[];
+    }): OrderDocument => {
+      const payments = input.payments ?? [];
+      const totalAmountCents = input.lineItems.reduce(
+        (total, item) => total + item.quantity * item.unitPriceCents,
+        0,
+      );
+      const paidAmountCents = payments.reduce(
+        (total, item) => total + item.amountCents,
+        0,
+      );
+      const timestamp = this.now();
+
+      return {
+        _id: new ObjectId(),
+        userId,
+        customerName: input.customerName,
+        customerNameNormalized: input.customerName.toLowerCase(),
+        dueDate: input.dueDate,
+        lineItems: input.lineItems,
+        totalAmountCents,
+        balanceDueCents: totalAmountCents - paidAmountCents,
+        paymentCount: payments.length,
+        payments,
+        createdAt: timestamp,
+        updatedAt: timestamp,
+      };
+    };
+
+    const today = dateOnlyFromOffset(0);
+    const sampleOrders: OrderDocument[] = [
+      buildSeedOrder({
+        customerName: "Northstar Trading",
+        dueDate: dateOnlyFromOffset(7),
+        lineItems: [lineItem("Implementation services", 5, 25_000)],
+      }),
+      buildSeedOrder({
+        customerName: "Desert Bloom Retail",
+        dueDate: dateOnlyFromOffset(7),
+        lineItems: [lineItem("Monthly operations package", 3, 30_000)],
+        payments: [
+          payment(30_000, today, "10000000-0000-4000-8000-000000000001"),
+        ],
+      }),
+      buildSeedOrder({
+        customerName: "Harborline Logistics",
+        dueDate: dateOnlyFromOffset(-2),
+        lineItems: [lineItem("Reconciliation engagement", 1, 75_000)],
+        payments: [
+          payment(
+            75_000,
+            dateOnlyFromOffset(-3),
+            "20000000-0000-4000-8000-000000000002",
+          ),
+        ],
+      }),
+      buildSeedOrder({
+        customerName: "Cedar Works",
+        dueDate: dateOnlyFromOffset(-7),
+        lineItems: [lineItem("Finance dashboard setup", 2, 25_000)],
+      }),
+      buildSeedOrder({
+        customerName: "Oasis Food Group",
+        dueDate: dateOnlyFromOffset(-7),
+        lineItems: [lineItem("Reporting support", 4, 30_000)],
+        payments: [
+          payment(
+            50_000,
+            dateOnlyFromOffset(-8),
+            "30000000-0000-4000-8000-000000000003",
+          ),
+        ],
+      }),
+      buildSeedOrder({
+        customerName: "Assignment Sample Corp",
+        dueDate: dateOnlyFromOffset(14),
+        lineItems: [lineItem("Assignment item", 2, 50_000)],
+        payments: [
+          payment(40_000, today, "40000000-0000-4000-8000-000000000004"),
+        ],
+      }),
+    ];
+
+    await orders.insertMany(sampleOrders);
+    return { ordersCreated: sampleOrders.length };
   }
 
   private orderNotFound(): AppError {

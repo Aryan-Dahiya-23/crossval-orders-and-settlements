@@ -2,7 +2,11 @@ import type { Metadata } from "next";
 
 import { EditOrderWorkspace } from "../../../../components/orders/edit-order-workspace";
 
-export const metadata: Metadata = { title: "Edit order | CrossVal" };
+export const metadata: Metadata = {
+  title: "Edit Order",
+  description:
+    "Update order customer details and line items prior to initial payment.",
+};
 
 export default async function EditOrderPage({
   params,

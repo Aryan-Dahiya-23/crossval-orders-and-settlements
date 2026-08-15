@@ -5,7 +5,11 @@ import { PublicOnlyRoute } from "../../components/auth/auth-boundary";
 import { AuthShell } from "../../components/auth/auth-shell";
 import { LoginForm } from "../../components/auth/login-form";
 
-export const metadata: Metadata = { title: "Sign in | CrossVal" };
+export const metadata: Metadata = {
+  title: "Sign In",
+  description:
+    "Sign in to your CrossVal financial operations workspace.",
+};
 
 export default function LoginPage() {
   return (

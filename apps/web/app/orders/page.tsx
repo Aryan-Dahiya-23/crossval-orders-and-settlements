@@ -5,7 +5,11 @@ import { AuthenticatedWorkspace } from "../../components/auth/authenticated-work
 
 import { RiBarChartGroupedFill } from "@remixicon/react";
 
-export const metadata: Metadata = { title: "Orders | CrossVal" };
+export const metadata: Metadata = {
+  title: "Orders",
+  description:
+    "Monitor active, pending, and settled customer orders with real-time financial metrics.",
+};
 
 export default function OrdersPage() {
   return (

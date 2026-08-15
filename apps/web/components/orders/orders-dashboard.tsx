@@ -33,7 +33,7 @@ import { AppShell } from "../layout/app-shell";
 import { PageHeader } from "../layout/page-header";
 import { Alert } from "../ui/alert";
 import * as Button from "../ui/button";
-import { Skeleton } from "../ui/skeleton";
+import { PageLoadingState, TableLoadingState } from "../ui/loading-state";
 import * as Table from "../ui/table";
 import { OrdersPagination } from "./orders-pagination";
 import { OrdersToolbar } from "./orders-toolbar";
@@ -86,6 +86,7 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
     }
   }, [orders.data, orders.isPlaceholderData, query, replaceQuery]);
 
+  const isInitialLoading = summary.isPending || (!orders.data && orders.isPending);
   const hasActiveFilters = query.status !== "all" || Boolean(query.search);
 
   return (
@@ -104,113 +105,122 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
         }
       />
 
-      <SampleDataCTA
-        hasOrders={Boolean(summary.data?.data.totalOrders && summary.data.data.totalOrders > 0)}
-        className="mt-6"
-      />
-
-      {summary.isPending ? (
-        <SummaryCardsSkeleton />
-      ) : summary.isError ? (
+      {isInitialLoading ? (
         <div className="mt-6">
-          <Alert tone="warning">Account summary is temporarily unavailable.</Alert>
+          <PageLoadingState
+            message="Loading Orders & Settlements"
+            subMessage="Fetching receivables, live balances, and payment ledgers…"
+          />
         </div>
       ) : (
-        <section
-          className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-          aria-label="Account summary"
-        >
-          <SummaryCard
-            icon={<RiFileList3Line />}
-            label="Total orders"
-            value={String(summary.data.data.totalOrders)}
-            hint="Active portfolio"
-          />
-          <SummaryCard
-            icon={<RiFundsLine />}
-            label="Outstanding"
-            value={formatUsd(summary.data.data.outstandingAmountCents)}
-            hint="Awaiting settlement"
-          />
-          <SummaryCard
-            icon={<RiCheckboxCircleLine />}
-            label="Collected"
-            value={formatUsd(summary.data.data.collectedAmountCents)}
-            hint="Payments received"
-          />
-          <SummaryCard
-            icon={<RiBankCardLine />}
-            label="Overdue"
-            value={formatUsd(summary.data.data.overdueAmountCents)}
-            hint="Requires attention"
-            danger={summary.data.data.overdueAmountCents > 0}
-          />
-        </section>
-      )}
+        <>
+          {!summary.isPending && summary.data ? (
+            <SampleDataCTA
+              hasOrders={Boolean(summary.data.data.totalOrders > 0)}
+              className="mt-6"
+            />
+          ) : null}
 
-      <section
-        className="mt-6 overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200"
-        aria-labelledby="orders-heading"
-        aria-busy={orders.isFetching}
-      >
-        <div className="flex flex-col gap-4 border-b border-stroke-soft-200 p-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <h2
-                id="orders-heading"
-                className="text-label-sm font-semibold text-text-strong-950"
-              >
-                Orders
-              </h2>
-              <p className="mt-0.5 text-paragraph-xs text-text-sub-600">
-                Sorted ledger view with live balances and settlement status.
-              </p>
+          {summary.isError ? (
+            <div className="mt-6">
+              <Alert tone="warning">Account summary is temporarily unavailable.</Alert>
             </div>
-            <div className="flex items-center gap-2">
-              <Button.Root
-                variant="neutral"
-                mode="stroke"
-                size="small"
-                type="button"
-                className="rounded-10"
-                onClick={() => void orders.refetch()}
-                disabled={orders.isFetching}
-                aria-label="Refresh orders"
-              >
-                <Button.Icon
-                  as={RiRefreshLine}
-                  className={orders.isFetching ? "animate-spin" : undefined}
-                />
-                Refresh
-              </Button.Root>
+          ) : summary.data ? (
+            <section
+              className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+              aria-label="Account summary"
+            >
+              <SummaryCard
+                icon={<RiFileList3Line />}
+                label="Total orders"
+                value={String(summary.data.data.totalOrders)}
+                hint="Active portfolio"
+              />
+              <SummaryCard
+                icon={<RiFundsLine />}
+                label="Outstanding"
+                value={formatUsd(summary.data.data.outstandingAmountCents)}
+                hint="Awaiting settlement"
+              />
+              <SummaryCard
+                icon={<RiCheckboxCircleLine />}
+                label="Collected"
+                value={formatUsd(summary.data.data.collectedAmountCents)}
+                hint="Payments received"
+              />
+              <SummaryCard
+                icon={<RiBankCardLine />}
+                label="Overdue"
+                value={formatUsd(summary.data.data.overdueAmountCents)}
+                hint="Requires attention"
+                danger={summary.data.data.overdueAmountCents > 0}
+              />
+            </section>
+          ) : null}
+
+          <section
+            className="mt-6 overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200"
+            aria-labelledby="orders-heading"
+            aria-busy={orders.isFetching}
+          >
+            <div className="flex flex-col gap-4 border-b border-stroke-soft-200 p-5">
+              <div className="flex items-center justify-between gap-3">
+                <div>
+                  <h2
+                    id="orders-heading"
+                    className="text-label-sm font-semibold text-text-strong-950"
+                  >
+                    Orders
+                  </h2>
+                  <p className="mt-0.5 text-paragraph-xs text-text-sub-600">
+                    Sorted ledger view with live balances and settlement status.
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button.Root
+                    variant="neutral"
+                    mode="stroke"
+                    size="small"
+                    type="button"
+                    className="rounded-10"
+                    onClick={() => void orders.refetch()}
+                    disabled={orders.isFetching}
+                    aria-label="Refresh orders"
+                  >
+                    <Button.Icon
+                      as={RiRefreshLine}
+                      className={orders.isFetching ? "animate-spin" : undefined}
+                    />
+                    Refresh
+                  </Button.Root>
+                </div>
+              </div>
+
+              <OrdersToolbar
+                key={query.search ?? ""}
+                query={query}
+                onStatusChange={(status) =>
+                  replaceQuery(patchOrderListState(query, { status }))
+                }
+                onSearchChange={handleSearchChange}
+                onSortChange={(sort, direction) =>
+                  replaceQuery(patchOrderListState(query, { sort, direction }))
+                }
+              />
             </div>
-          </div>
 
-          <OrdersToolbar
-            key={query.search ?? ""}
-            query={query}
-            onStatusChange={(status) =>
-              replaceQuery(patchOrderListState(query, { status }))
-            }
-            onSearchChange={handleSearchChange}
-            onSortChange={(sort, direction) =>
-              replaceQuery(patchOrderListState(query, { sort, direction }))
-            }
-          />
-        </div>
+            {orders.isError && orders.data ? (
+              <div className="border-b border-stroke-soft-200 p-4">
+                <Alert tone="warning">
+                  The latest orders could not be loaded. Showing the previous
+                  results; try again when the connection recovers.
+                </Alert>
+              </div>
+            ) : null}
 
-        {orders.isError && orders.data ? (
-          <div className="border-b border-stroke-soft-200 p-4">
-            <Alert tone="warning">
-              The latest orders could not be loaded. Showing the previous
-              results; try again when the connection recovers.
-            </Alert>
-          </div>
-        ) : null}
-
-        {orders.isPending ? (
-          <OrderRowsSkeleton />
-        ) : orders.isError && !orders.data ? (
+            {orders.isPending ? (
+              <TableLoadingState message="Loading orders and settlement records…" />
+            ) : orders.isError && !orders.data ? (
           <div
             className="grid justify-items-start gap-3 p-8 text-paragraph-sm text-text-sub-600"
             role="alert"
@@ -285,7 +295,9 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
           />
         ) : null}
       </section>
-    </AppShell>
+    </>
+  )}
+</AppShell>
   );
 }
 
@@ -452,74 +464,4 @@ function MobileMetric({
   );
 }
 
-function SummaryCardsSkeleton() {
-  const cards = [
-    { label: "Total orders", hint: "Active portfolio", icon: RiFileList3Line },
-    { label: "Outstanding", hint: "Awaiting settlement", icon: RiFundsLine },
-    { label: "Collected", hint: "Payments received", icon: RiCheckboxCircleLine },
-    { label: "Overdue", hint: "Requires attention", icon: RiBankCardLine },
-  ];
-
-  return (
-    <section
-      className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-      aria-label="Loading account summary"
-    >
-      {cards.map((card) => (
-        <article
-          key={card.label}
-          className="relative flex flex-col rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200"
-        >
-          <div className="flex items-center justify-between gap-3">
-            <span className="text-subheading-xs uppercase font-medium tracking-wide text-text-soft-400">
-              {card.label}
-            </span>
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-weak-50 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200 [&>svg]:size-5">
-              <card.icon />
-            </span>
-          </div>
-          <div className="mt-4">
-            <Skeleton className="h-7 w-28 rounded-lg" />
-          </div>
-          <span className="mt-1 block text-paragraph-xs text-text-sub-600">
-            {card.hint}
-          </span>
-        </article>
-      ))}
-    </section>
-  );
-}
-
-function OrderRowsSkeleton() {
-  return (
-    <div className="divide-y divide-stroke-soft-200" aria-label="Loading orders">
-      {[1, 2, 3, 4, 5].map((index) => (
-        <div
-          key={index}
-          className="flex items-center justify-between p-4 px-6 hover:bg-bg-weak-50/50"
-        >
-          <div className="space-y-1.5 min-w-[180px]">
-            <Skeleton className="h-4 w-36 rounded-md" />
-            <Skeleton className="h-3 w-20 rounded-md" />
-          </div>
-          <div className="hidden sm:block min-w-[100px]">
-            <Skeleton className="h-4 w-24 rounded-md" />
-          </div>
-          <div className="hidden md:block min-w-[90px]">
-            <Skeleton className="h-4 w-20 rounded-md" />
-          </div>
-          <div className="hidden md:block min-w-[90px]">
-            <Skeleton className="h-4 w-20 rounded-md" />
-          </div>
-          <div className="min-w-[90px]">
-            <Skeleton className="h-4 w-20 rounded-md" />
-          </div>
-          <div className="min-w-[100px] flex justify-end">
-            <Skeleton className="h-6 w-20 rounded-full" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
 

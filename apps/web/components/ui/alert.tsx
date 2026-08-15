@@ -1,8 +1,15 @@
 // AlignUI Alert v0.0.0
 
 import * as React from 'react';
-import { RiCloseLine } from '@remixicon/react';
+import {
+  RiAlertLine,
+  RiCheckboxCircleLine,
+  RiCloseLine,
+  RiErrorWarningLine,
+  RiInformationLine,
+} from '@remixicon/react';
 
+import { cn } from '@/utils/cn';
 import type { PolymorphicComponentProps } from '@/utils/polymorphic';
 import { recursiveCloneChildren } from '@/utils/recursive-clone-children';
 import { tv, type ClassValue, type VariantProps } from '@/utils/tv';
@@ -307,17 +314,50 @@ export function Alert({
   tone?: "neutral" | "info" | "success" | "danger" | "warning";
   className?: string;
 } & React.HTMLAttributes<HTMLDivElement>) {
-  const statusMap: Record<string, 'error' | 'warning' | 'success' | 'information'> = {
-    danger: 'error',
-    warning: 'warning',
-    success: 'success',
-    info: 'information',
-    neutral: 'information',
+  const toneStyles = {
+    danger: {
+      container: "bg-error-lighter/50 text-error-dark ring-1 ring-inset ring-error-light",
+      icon: RiErrorWarningLine,
+      iconColor: "text-error-base",
+    },
+    warning: {
+      container: "bg-warning-lighter/50 text-warning-dark ring-1 ring-inset ring-warning-light",
+      icon: RiAlertLine,
+      iconColor: "text-warning-base",
+    },
+    success: {
+      container: "bg-success-lighter/50 text-success-dark ring-1 ring-inset ring-success-light",
+      icon: RiCheckboxCircleLine,
+      iconColor: "text-success-base",
+    },
+    info: {
+      container: "bg-information-lighter/50 text-information-dark ring-1 ring-inset ring-information-light",
+      icon: RiInformationLine,
+      iconColor: "text-information-base",
+    },
+    neutral: {
+      container: "bg-bg-weak-50 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200",
+      icon: RiInformationLine,
+      iconColor: "text-text-sub-600",
+    },
   };
-  const mappedStatus = statusMap[tone] ?? 'error';
+
+  const current = toneStyles[tone] ?? toneStyles.danger;
+  const IconComponent = current.icon;
+
   return (
-    <AlertRoot variant="stroke" status={mappedStatus} size="small" className={className} {...props}>
-      <div className="flex-1 text-paragraph-sm">{children}</div>
-    </AlertRoot>
+    <div
+      role="alert"
+      className={cn(
+        "flex items-start gap-2.5 rounded-xl p-3 text-paragraph-xs font-medium leading-5 transition duration-200 ease-out",
+        current.container,
+        className,
+      )}
+      {...props}
+    >
+      <IconComponent className={cn("size-4 shrink-0 mt-0.5", current.iconColor)} />
+      <div className="flex-1 min-w-0">{children}</div>
+    </div>
   );
 }
+

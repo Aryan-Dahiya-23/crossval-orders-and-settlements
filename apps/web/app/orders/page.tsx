@@ -3,6 +3,8 @@ import { Suspense } from "react";
 
 import { AuthenticatedWorkspace } from "../../components/auth/authenticated-workspace";
 
+import { RiBarChartGroupedFill } from "@remixicon/react";
+
 export const metadata: Metadata = { title: "Orders | CrossVal" };
 
 export default function OrdersPage() {
@@ -16,11 +18,18 @@ export default function OrdersPage() {
 function OrdersRouteFallback() {
   return (
     <main
-      className="grid min-h-screen place-items-center bg-bg-weak-50 p-6"
+      className="flex min-h-screen flex-col items-center justify-center bg-bg-weak-50 p-6 text-center"
       aria-busy="true"
     >
-      <div className="h-32 w-full max-w-md animate-pulse rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200" />
-      <span className="sr-only">Preparing orders dashboard…</span>
+      <div className="flex flex-col items-center gap-4">
+        <div className="relative grid size-12 place-items-center rounded-2xl bg-bg-white-0 shadow-regular-sm ring-1 ring-inset ring-stroke-soft-200">
+          <RiBarChartGroupedFill className="size-6 text-primary-base animate-pulse" />
+        </div>
+        <div className="space-y-1">
+          <h3 className="text-label-sm font-semibold text-text-strong-950">CrossVal</h3>
+          <p className="text-paragraph-xs text-text-sub-600">Preparing orders dashboard…</p>
+        </div>
+      </div>
     </main>
   );
 }

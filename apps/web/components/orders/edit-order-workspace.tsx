@@ -160,10 +160,40 @@ function EditOrderLoading({ viewer }: { viewer: Viewer }) {
         aria-busy="true"
         aria-label="Loading order for editing"
       >
-        <Skeleton className="h-5 w-32 rounded-md" />
-        <Skeleton className="h-20 w-full rounded-2xl" />
-        <Skeleton className="h-44 w-full rounded-2xl" />
-        <Skeleton className="h-72 w-full rounded-2xl" />
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-28 rounded-lg" />
+        </div>
+
+        <div className="space-y-1">
+          <Skeleton className="h-8 w-48 rounded-lg" />
+          <Skeleton className="h-4 w-72 rounded-md" />
+        </div>
+
+        {/* Customer & date form section skeleton */}
+        <div className="rounded-2xl bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200">
+          <div className="grid gap-6 md:grid-cols-2">
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <Skeleton className="h-10 w-full rounded-10" />
+            </div>
+            <div className="space-y-2">
+              <Skeleton className="h-4 w-20 rounded-md" />
+              <Skeleton className="h-10 w-full rounded-10" />
+            </div>
+          </div>
+        </div>
+
+        {/* Line items section skeleton */}
+        <div className="rounded-2xl bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 space-y-4">
+          <div className="flex items-center justify-between">
+            <Skeleton className="h-5 w-24 rounded-md" />
+            <Skeleton className="h-8 w-24 rounded-10" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="h-12 w-full rounded-xl" />
+            <Skeleton className="h-12 w-full rounded-xl" />
+          </div>
+        </div>
       </div>
     </AppShell>
   );

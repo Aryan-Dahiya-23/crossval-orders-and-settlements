@@ -12,6 +12,7 @@ import {
   RiCheckboxCircleLine,
   RiFileList3Line,
   RiFundsLine,
+  RiRefreshLine,
   RiSearchLine,
 } from "@remixicon/react";
 
@@ -109,14 +110,7 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
       />
 
       {summary.isPending ? (
-        <section
-          className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
-          aria-label="Loading account summary"
-        >
-          {[0, 1, 2, 3].map((item) => (
-            <Skeleton className="h-[148px] rounded-2xl" key={item} />
-          ))}
-        </section>
+        <SummaryCardsSkeleton />
       ) : summary.isError ? (
         <div className="mt-6">
           <Alert tone="warning">Account summary is temporarily unavailable.</Alert>
@@ -164,19 +158,32 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
             <div>
               <h2
                 id="orders-heading"
-                className="text-label-md font-semibold text-text-strong-950"
+                className="text-label-sm font-semibold text-text-strong-950"
               >
-                All orders
+                Orders
               </h2>
               <p className="mt-0.5 text-paragraph-xs text-text-sub-600">
-                Review due dates and settlement progress across your account.
+                Sorted ledger view with live balances and settlement status.
               </p>
             </div>
-            <span className="min-h-4 text-paragraph-xs text-text-soft-400" aria-live="polite">
-              {orders.isFetching && !orders.isPending
-                ? "Updating orders…"
-                : null}
-            </span>
+            <div className="flex items-center gap-2">
+              <Button.Root
+                variant="neutral"
+                mode="stroke"
+                size="small"
+                type="button"
+                className="rounded-10"
+                onClick={() => void orders.refetch()}
+                disabled={orders.isFetching}
+                aria-label="Refresh orders"
+              >
+                <Button.Icon
+                  as={RiRefreshLine}
+                  className={orders.isFetching ? "animate-spin" : undefined}
+                />
+                Refresh
+              </Button.Root>
+            </div>
           </div>
 
           <OrdersToolbar
@@ -202,11 +209,7 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
         ) : null}
 
         {orders.isPending ? (
-          <div className="p-5 space-y-3" aria-label="Loading orders">
-            {[0, 1, 2, 3, 4].map((item) => (
-              <Skeleton className="h-16 rounded-xl" key={item} />
-            ))}
-          </div>
+          <OrderRowsSkeleton />
         ) : orders.isError && !orders.data ? (
           <div
             className="grid justify-items-start gap-3 p-8 text-paragraph-sm text-text-sub-600"
@@ -448,3 +451,75 @@ function MobileMetric({
     </div>
   );
 }
+
+function SummaryCardsSkeleton() {
+  const cards = [
+    { label: "Total orders", hint: "Active portfolio", icon: RiFileList3Line },
+    { label: "Outstanding", hint: "Awaiting settlement", icon: RiFundsLine },
+    { label: "Collected", hint: "Payments received", icon: RiCheckboxCircleLine },
+    { label: "Overdue", hint: "Requires attention", icon: RiBankCardLine },
+  ];
+
+  return (
+    <section
+      className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
+      aria-label="Loading account summary"
+    >
+      {cards.map((card) => (
+        <article
+          key={card.label}
+          className="relative flex flex-col rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200"
+        >
+          <div className="flex items-center justify-between gap-3">
+            <span className="text-subheading-xs uppercase font-medium tracking-wide text-text-soft-400">
+              {card.label}
+            </span>
+            <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-weak-50 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200 [&>svg]:size-5">
+              <card.icon />
+            </span>
+          </div>
+          <div className="mt-4">
+            <Skeleton className="h-7 w-28 rounded-lg" />
+          </div>
+          <span className="mt-1 block text-paragraph-xs text-text-sub-600">
+            {card.hint}
+          </span>
+        </article>
+      ))}
+    </section>
+  );
+}
+
+function OrderRowsSkeleton() {
+  return (
+    <div className="divide-y divide-stroke-soft-200" aria-label="Loading orders">
+      {[1, 2, 3, 4, 5].map((index) => (
+        <div
+          key={index}
+          className="flex items-center justify-between p-4 px-6 hover:bg-bg-weak-50/50"
+        >
+          <div className="space-y-1.5 min-w-[180px]">
+            <Skeleton className="h-4 w-36 rounded-md" />
+            <Skeleton className="h-3 w-20 rounded-md" />
+          </div>
+          <div className="hidden sm:block min-w-[100px]">
+            <Skeleton className="h-4 w-24 rounded-md" />
+          </div>
+          <div className="hidden md:block min-w-[90px]">
+            <Skeleton className="h-4 w-20 rounded-md" />
+          </div>
+          <div className="hidden md:block min-w-[90px]">
+            <Skeleton className="h-4 w-20 rounded-md" />
+          </div>
+          <div className="min-w-[90px]">
+            <Skeleton className="h-4 w-20 rounded-md" />
+          </div>
+          <div className="min-w-[100px] flex justify-end">
+            <Skeleton className="h-6 w-20 rounded-full" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+

@@ -7,7 +7,10 @@ export function Skeleton({
 }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={cn('animate-pulse rounded-md bg-neutral-200', className)}
+      className={cn(
+        'animate-shimmer rounded-lg bg-bg-soft-200/70 ring-1 ring-inset ring-stroke-soft-200/40',
+        className,
+      )}
       {...props}
     />
   );

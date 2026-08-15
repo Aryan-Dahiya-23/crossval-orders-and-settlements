@@ -312,13 +312,61 @@ function PanelHeader({
 function DetailLoading({ viewer }: { viewer: Viewer }) {
   return (
     <AppShell viewer={viewer}>
-      <div className="space-y-5" aria-busy="true" aria-label="Loading order">
-        <Skeleton className="h-5 w-24 rounded-md" />
-        <Skeleton className="h-24 w-full rounded-2xl" />
-        <Skeleton className="h-28 w-full rounded-2xl" />
+      <div className="space-y-6" aria-busy="true" aria-label="Loading order">
+        <div className="flex items-center gap-2">
+          <Skeleton className="h-8 w-28 rounded-lg" />
+        </div>
+
+        {/* Header summary skeleton card */}
+        <div className="flex flex-col gap-4 rounded-2xl bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 sm:flex-row sm:items-center sm:justify-between">
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <Skeleton className="h-7 w-48 rounded-lg" />
+              <Skeleton className="h-6 w-20 rounded-full" />
+            </div>
+            <Skeleton className="h-4 w-36 rounded-md" />
+          </div>
+          <div className="flex items-center gap-3">
+            <Skeleton className="h-9 w-28 rounded-10" />
+            <Skeleton className="h-9 w-32 rounded-10" />
+          </div>
+        </div>
+
+        {/* Financial overview scorecard skeleton */}
+        <div className="grid gap-4 sm:grid-cols-3">
+          {[1, 2, 3].map((item) => (
+            <div
+              key={item}
+              className="rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 space-y-2"
+            >
+              <Skeleton className="h-3 w-20 rounded-md" />
+              <Skeleton className="h-8 w-28 rounded-lg" />
+            </div>
+          ))}
+        </div>
+
+        {/* Line items and ledger skeletons */}
         <div className="grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
-          <Skeleton className="h-72 w-full rounded-2xl" />
-          <Skeleton className="h-72 w-full rounded-2xl" />
+          <div className="overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200">
+            <div className="border-b border-stroke-soft-200 px-5 py-4 space-y-1">
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <Skeleton className="h-3 w-48 rounded-md" />
+            </div>
+            <div className="p-5 space-y-3">
+              <Skeleton className="h-12 w-full rounded-xl" />
+              <Skeleton className="h-12 w-full rounded-xl" />
+            </div>
+          </div>
+
+          <div className="overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200">
+            <div className="border-b border-stroke-soft-200 px-5 py-4 space-y-1">
+              <Skeleton className="h-4 w-28 rounded-md" />
+              <Skeleton className="h-3 w-40 rounded-md" />
+            </div>
+            <div className="p-5 space-y-3">
+              <Skeleton className="h-14 w-full rounded-xl" />
+            </div>
+          </div>
         </div>
       </div>
     </AppShell>

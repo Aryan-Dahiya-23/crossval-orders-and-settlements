@@ -1,7 +1,6 @@
 "use client";
 
 import {
-  RiCheckLine,
   RiDatabase2Line,
   RiFlashlightLine,
 } from "@remixicon/react";
@@ -19,18 +18,13 @@ export function SampleDataCTA({
   hasOrders: boolean;
   className?: string;
 }) {
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const populateMutation = usePopulateSampleOrders();
 
   const handlePopulate = async () => {
     setErrorMessage(null);
-    setSuccessMessage(null);
     try {
-      const result = await populateMutation.mutateAsync();
-      setSuccessMessage(
-        `Successfully loaded ${result.ordersCreated} demo orders across all financial states!`,
-      );
+      await populateMutation.mutateAsync();
     } catch (err: unknown) {
       if (err instanceof ApiError) {
         setErrorMessage(err.message);
@@ -40,8 +34,8 @@ export function SampleDataCTA({
     }
   };
 
-  // If the user has orders and hasn't just triggered the populate, don't show the large banner
-  if (hasOrders && !successMessage) {
+  // As soon as the user has orders (or sample is loaded), dismiss the card completely
+  if (hasOrders) {
     return null;
   }
 
@@ -64,13 +58,6 @@ export function SampleDataCTA({
               filters, and payment settlement flows.
             </p>
 
-            {successMessage ? (
-              <div className="flex items-center gap-1.5 pt-2 text-paragraph-xs font-semibold text-success-dark">
-                <RiCheckLine className="size-4 text-success-base" />
-                <span>{successMessage}</span>
-              </div>
-            ) : null}
-
             {errorMessage ? (
               <div className="pt-2">
                 <Alert tone="danger">{errorMessage}</Alert>
@@ -85,14 +72,10 @@ export function SampleDataCTA({
             size="medium"
             type="button"
             onClick={() => void handlePopulate()}
-            disabled={populateMutation.isPending || Boolean(successMessage)}
+            disabled={populateMutation.isPending}
           >
             <Button.Icon as={RiDatabase2Line} />
-            {populateMutation.isPending
-              ? "Loading dataset…"
-              : successMessage
-                ? "Dataset loaded"
-                : "Load sample data"}
+            {populateMutation.isPending ? "Loading dataset…" : "Load sample data"}
           </Button.Root>
         </div>
       </div>

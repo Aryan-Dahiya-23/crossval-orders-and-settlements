@@ -67,29 +67,29 @@ This is a release gate, not a progress estimate. Check an item only after verify
 
 - [x] React Query is the only general-purpose server-state store.
 - [x] Implemented auth query keys come from a stable factory and include all response-changing parameters.
-- [ ] List filters and pagination are URL-backed.
+- [x] List filters and pagination are URL-backed.
 - [x] Payment mutations are not optimistic.
 - [x] Successful payment mutations invalidate the documented detail, list, and summary caches.
 - [x] Logout and session loss clear private cached data.
 - [x] Query functions use cancellation signals.
 - [x] Unauthorized and validation failures are not blindly retried.
-- [ ] Initial load, background refresh, empty, filtered-empty, error, and conflict states are distinct.
+- [x] Initial load, background refresh, empty, filtered-empty, error, and conflict states are distinct for implemented dashboard/payment flows.
 - [x] Implemented authentication forms render client and server validation accessibly.
 - [x] Implemented money and date-only values render through centralized formatters without timezone shifts.
 
 ## UI and accessibility
 
-- [ ] The dashboard shows total, paid, due, due date, and status clearly.
-- [ ] Record Payment is obvious on an eligible order.
+- [x] The dashboard shows total, paid, due, due date, and status clearly.
+- [x] Record Payment is obvious on an eligible order.
 - [ ] Invalid actions are unavailable with clear explanation.
-- [ ] The table remains usable at supported desktop widths.
-- [ ] Core journeys work at mobile width.
+- [x] The table remains usable at supported desktop widths.
+- [x] Core implemented journeys work at mobile width.
 - [ ] All actions are keyboard accessible.
-- [ ] Dialog focus management is correct.
-- [ ] Status does not rely on color alone.
+- [x] Dialog focus management is correct.
+- [x] Status does not rely on color alone.
 - [ ] Form errors are programmatically associated and announced.
 - [ ] Focus visibility, contrast, and reduced-motion behavior are verified.
-- [ ] No raw loading spinner replaces an entire structured page.
+- [x] No raw loading spinner replaces an entire structured page.
 
 ## Tests and quality
 

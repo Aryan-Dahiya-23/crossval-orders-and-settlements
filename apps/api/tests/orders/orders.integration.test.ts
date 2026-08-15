@@ -144,18 +144,16 @@ describe("order API", () => {
     connected = true;
     await runMigrations(database);
 
-    const [userA, userB] = await Promise.all([
-      request(app)
-        .post("/v1/auth/signup")
-        .set("Origin", appOrigin)
-        .send({ email: "orders-a@example.com", password: validPassword })
-        .expect(201),
-      request(app)
-        .post("/v1/auth/signup")
-        .set("Origin", appOrigin)
-        .send({ email: "orders-b@example.com", password: validPassword })
-        .expect(201),
-    ]);
+    const userA = await request(app)
+      .post("/v1/auth/signup")
+      .set("Origin", appOrigin)
+      .send({ email: "orders-a@example.com", password: validPassword })
+      .expect(201);
+    const userB = await request(app)
+      .post("/v1/auth/signup")
+      .set("Origin", appOrigin)
+      .send({ email: "orders-b@example.com", password: validPassword })
+      .expect(201);
     userACookie = cookieFrom(userA);
     userAId = new ObjectId(userA.body.data.id);
     userBId = new ObjectId(userB.body.data.id);

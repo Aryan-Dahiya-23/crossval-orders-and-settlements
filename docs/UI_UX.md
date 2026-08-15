@@ -227,7 +227,11 @@ The resulting interface must remain its own coherent product and comply with Ali
 
 ## Phase 6 implementation note
 
-The implemented foundation follows this specification with a stable 248 px desktop sidebar, a mobile header and dismissible navigation drawer, consistent page headers, compact summary cards, dense desktop tables, purpose-built mobile order cards, text-and-color status badges, and a Radix-backed payment modal. Align UI-style primitives live locally under `apps/web/components/ui`; none of the three reference repositories is imported or required at runtime. URL-backed filtering, sorting, result counts, and pagination remain Phase 7 scope.
+The implemented foundation follows this specification with a stable 248 px desktop sidebar, a mobile header and dismissible navigation drawer, consistent page headers, compact summary cards, dense desktop tables, purpose-built mobile order cards, text-and-color status badges, and a Radix-backed payment modal. Align UI-style primitives live locally under `apps/web/components/ui`; none of the three reference repositories is imported or required at runtime.
+
+## Phase 7 implementation note
+
+The dashboard controls now share the same restrained design language while operating against the full server dataset. Applied search, status, sorting, and pagination are URL-backed; result ranges and updating feedback remain visible without layout replacement; empty and filtered-empty states have different recovery actions; and the compact pagination layout works without horizontal scrolling at 390 px. Search accurately promises customer-name matching, status controls retain text and `aria-pressed`, sorting uses an explicitly labelled select, and order navigation remains a real link.
 
 ## Out of scope
 

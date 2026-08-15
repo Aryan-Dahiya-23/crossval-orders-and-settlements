@@ -23,7 +23,11 @@ This roadmap defines the order of implementation after explicit approval to begi
 | Phase 4 — Order domain and REST CRUD    | Complete                                |
 | Phase 5 — Atomic payment system         | Complete                                |
 | Phase 6 — Align UI foundation and shell | Complete                                |
-| Phase 7 onward                          | Not started; awaiting explicit approval |
+| Phase 7 — Dashboard and React Query     | Complete                                |
+| Phase 8 — Order lifecycle workflows     | Complete                                |
+| Phase 9 — Payment and history UX        | Complete                                |
+| Phase 10 — Test hardening and E2E       | Complete                                |
+| Phase 11 onward                         | Ready for deployment & submission audit |
 
 ## Phase 0 — Requirements and architecture
 
@@ -209,6 +213,8 @@ Implementation result (2026-08-15): Complete. The web app now uses a focused set
 
 Goal: deliver the main assignment interface.
 
+Detailed execution plan: [`docs/PHASE_7_IMPLEMENTATION_PLAN.md`](docs/PHASE_7_IMPLEMENTATION_PLAN.md).
+
 Work:
 
 - Configure the QueryClient and query-key factory.
@@ -226,6 +232,8 @@ Verification:
 - Previous data remains visible during page/filter transitions.
 - Mutation invalidation refreshes the correct queries.
 - Table and summary values match API responses.
+
+Implementation result (2026-08-15): Complete. The orders dashboard now derives a canonical, default-free URL state for customer-prefix search, status, sorting, page, and page size; serializes every server-affecting request parameter explicitly; and uses stable primitive React Query keys with cancellation and previous-data transitions. It includes deterministic malformed-URL correction, out-of-range page recovery, account-wide summaries, result ranges, responsive pagination, and distinct initial, updating, empty, filtered-empty, and error states. Twelve focused web tests, production checks, and live desktop/mobile browser flows passed, including filter/sort/page restoration and payment-driven list/summary invalidation.
 
 ## Phase 8 — Order creation, edit, and detail workflows
 

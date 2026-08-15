@@ -6,13 +6,19 @@ import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
+import {
+  centsToDecimalString,
+  decimalToCents,
+} from "../../features/orders/form-schema";
 import { useRecordPayment } from "../../features/orders/queries";
 import { ApiError } from "../../lib/api-client";
+import { cn } from "../../lib/cn";
 import { formatUsd } from "../../lib/format";
 import { Alert } from "../ui/alert";
-import { Button } from "../ui/button";
+import * as Button from "../ui/button";
 import { Field, Input, Textarea } from "../ui/input";
-import { Modal } from "../ui/modal";
+import * as Modal from "../ui/modal";
+import * as StatusBadge from "../ui/status-badge";
 
 const paymentFormSchema = z.strictObject({
   amount: z
@@ -35,15 +41,6 @@ interface PaymentDialogProps {
   onSuccess: (amountCents: number) => void;
 }
 
-const decimalToCents = (value: string): number | null => {
-  const match = /^(\d+)(?:\.(\d{1,2}))?$/.exec(value.trim());
-  if (!match) return null;
-  const whole = Number(match[1]);
-  const fraction = (match[2] ?? "").padEnd(2, "0");
-  const cents = whole * 100 + Number(fraction);
-  return Number.isSafeInteger(cents) ? cents : null;
-};
-
 export function PaymentDialog({
   open,
   order,
@@ -57,12 +54,45 @@ export function PaymentDialog({
   const [serverError, setServerError] = useState<string | null>(null);
   const mutation = useRecordPayment(order.id);
   const todayUtc = new Date().toISOString().slice(0, 10);
+
   const form = useForm<PaymentFormValues>({
     resolver: zodResolver(paymentFormSchema),
     defaultValues: { amount: "", paymentDate: todayUtc, note: "" },
   });
+
   const watchedAmount = useWatch({ control: form.control, name: "amount" });
-  const amountCents = decimalToCents(watchedAmount);
+  const amountCents = decimalToCents(watchedAmount ?? "");
+
+  // Real-time dynamic settlement preview calculations
+  const isValidAmount = amountCents !== null && amountCents > 0;
+  const isOverpaid =
+    amountCents !== null && amountCents > order.balanceDueCents;
+  const isFullSettlement =
+    isValidAmount && amountCents === order.balanceDueCents;
+  const isPartialPayment =
+    isValidAmount &&
+    amountCents < order.balanceDueCents &&
+    order.balanceDueCents > 0;
+  const projectedBalanceCents =
+    amountCents !== null
+      ? Math.max(0, order.balanceDueCents - amountCents)
+      : order.balanceDueCents;
+
+  const handleUseRemaining = () => {
+    form.setValue("amount", centsToDecimalString(order.balanceDueCents), {
+      shouldValidate: true,
+      shouldDirty: true,
+      shouldTouch: true,
+    });
+  };
+
+  const handleClose = () => {
+    if (mutation.isPending) return;
+    setAttempt(null);
+    setServerError(null);
+    form.reset({ amount: "", paymentDate: todayUtc, note: "" });
+    onClose();
+  };
 
   const submit = form.handleSubmit(async (values) => {
     setServerError(null);
@@ -126,122 +156,187 @@ export function PaymentDialog({
   });
 
   return (
-    <Modal
+    <Modal.Root
       open={open}
-      onOpenChange={(nextOpen) => {
-        if (!nextOpen && !mutation.isPending) onClose();
+      onOpenChange={(nextOpen: boolean) => {
+        if (!nextOpen) handleClose();
       }}
-      title="Record payment"
-      description={`Apply a settlement to ${order.displayId}. The write is protected by an idempotency key.`}
-      footer={
-        <>
-          <Button
-            variant="secondary"
+    >
+      <Modal.Content className="max-w-[480px]">
+        <Modal.Header>
+          <Modal.Title>Record payment</Modal.Title>
+          <Modal.Description>
+            Apply a settlement to {order.displayId}. The write is protected by an idempotency key.
+          </Modal.Description>
+        </Modal.Header>
+
+        <Modal.Body className="space-y-4 p-5">
+          {/* Dynamic Settlement Preview Card */}
+          <div className="overflow-hidden rounded-xl bg-bg-weak-50 ring-1 ring-inset ring-stroke-soft-200">
+            <div className="flex items-center justify-between border-b border-stroke-soft-200 px-4 py-2.5 text-paragraph-xs text-text-sub-600">
+              <span>Current balance</span>
+              <strong className="font-semibold tabular-nums text-text-strong-950">
+                {formatUsd(order.balanceDueCents)}
+              </strong>
+            </div>
+
+            {isValidAmount ? (
+              <div className="flex items-center justify-between border-b border-stroke-soft-200 px-4 py-2.5 text-paragraph-xs text-text-sub-600">
+                <span>Payment applied</span>
+                <strong className="font-semibold tabular-nums text-success-base">
+                  -{formatUsd(amountCents)}
+                </strong>
+              </div>
+            ) : null}
+
+            <div
+              className={cn(
+                "flex items-center justify-between px-4 py-3 transition-colors",
+                isOverpaid && "bg-error-lighter/50",
+                isFullSettlement && "bg-success-lighter/50",
+                isPartialPayment && "bg-warning-lighter/40",
+              )}
+            >
+              <div className="flex items-center gap-2">
+                <span className="text-paragraph-sm font-medium text-text-strong-950">
+                  Projected balance
+                </span>
+                {isFullSettlement ? (
+                  <StatusBadge.Root variant="stroke" status="completed">
+                    <StatusBadge.Dot />
+                    Settled in full
+                  </StatusBadge.Root>
+                ) : isPartialPayment ? (
+                  <StatusBadge.Root variant="stroke" status="pending">
+                    <StatusBadge.Dot />
+                    Partially paid
+                  </StatusBadge.Root>
+                ) : isOverpaid ? (
+                  <StatusBadge.Root variant="stroke" status="failed">
+                    <StatusBadge.Dot />
+                    Exceeds balance
+                  </StatusBadge.Root>
+                ) : null}
+              </div>
+              <strong
+                className={cn(
+                  "text-label-md font-semibold tabular-nums",
+                  isOverpaid
+                    ? "text-error-base"
+                    : isFullSettlement
+                      ? "text-success-base"
+                      : isPartialPayment
+                        ? "text-warning-dark"
+                        : "text-text-strong-950",
+                )}
+              >
+                {formatUsd(projectedBalanceCents)}
+              </strong>
+            </div>
+          </div>
+
+          <form
+            id="payment-form"
+            className="space-y-4"
+            noValidate
+            onSubmit={(event) => void submit(event)}
+          >
+            <Field
+              label="Amount (USD)"
+              htmlFor="payment-amount"
+              error={form.formState.errors.amount?.message}
+              hint={order.balanceDueCents > 0 ? `Maximum ${formatUsd(order.balanceDueCents)}` : undefined}
+            >
+              {order.balanceDueCents > 0 ? (
+                <div className="flex justify-end -mt-1 mb-1">
+                  <button
+                    className="text-subheading-2xs font-semibold text-text-sub-600 underline-offset-2 hover:text-text-strong-950 hover:underline focus-visible:outline-none"
+                    type="button"
+                    onClick={handleUseRemaining}
+                  >
+                    Use remaining balance ({formatUsd(order.balanceDueCents)})
+                  </button>
+                </div>
+              ) : null}
+              <Input
+                id="payment-amount"
+                prefix="$"
+                placeholder="0.00"
+                className="tabular-nums font-medium"
+                inputMode="decimal"
+                autoComplete="off"
+                hasError={form.formState.errors.amount !== undefined}
+                aria-invalid={form.formState.errors.amount !== undefined}
+                aria-describedby="payment-amount-error"
+                {...form.register("amount")}
+              />
+            </Field>
+
+            <Field
+              label="Payment date"
+              htmlFor="payment-date"
+              error={form.formState.errors.paymentDate?.message}
+            >
+              <Input
+                id="payment-date"
+                type="date"
+                max={todayUtc}
+                hasError={form.formState.errors.paymentDate !== undefined}
+                aria-invalid={form.formState.errors.paymentDate !== undefined}
+                {...form.register("paymentDate")}
+              />
+            </Field>
+
+            <Field
+              label="Note"
+              htmlFor="payment-note"
+              optional
+              error={form.formState.errors.note?.message}
+            >
+              <Textarea
+                id="payment-note"
+                rows={3}
+                placeholder="Bank transfer, reference, or context"
+                hasError={form.formState.errors.note !== undefined}
+                aria-invalid={form.formState.errors.note !== undefined}
+                {...form.register("note")}
+              />
+            </Field>
+
+            {serverError ? <Alert tone="danger">{serverError}</Alert> : null}
+          </form>
+        </Modal.Body>
+
+        <Modal.Footer>
+          <Button.Root
+            variant="neutral"
+            mode="stroke"
+            size="medium"
             type="button"
+            className="w-full"
             disabled={mutation.isPending}
-            onClick={onClose}
+            onClick={handleClose}
           >
             Cancel
-          </Button>
-          <Button
+          </Button.Root>
+          <Button.Root
+            variant="primary"
+            size="medium"
             type="submit"
             form="payment-form"
-            disabled={mutation.isPending}
+            className="w-full"
+            disabled={
+              mutation.isPending || isOverpaid || order.balanceDueCents <= 0
+            }
           >
             {mutation.isPending
               ? "Recording…"
-              : amountCents !== null && amountCents > 0
+              : isValidAmount && !isOverpaid
                 ? `Record ${formatUsd(amountCents)}`
                 : "Record payment"}
-          </Button>
-        </>
-      }
-    >
-      <div className="mb-5 flex items-center justify-between rounded-[10px] bg-slate-50 px-4 py-3 ring-1 ring-inset ring-slate-200">
-        <span className="text-sm text-slate-500">Current balance</span>
-        <strong className="text-base font-semibold tabular-nums text-slate-950">
-          {formatUsd(order.balanceDueCents)}
-        </strong>
-      </div>
-
-      <form
-        id="payment-form"
-        className="grid gap-4"
-        noValidate
-        onSubmit={(event) => void submit(event)}
-      >
-        <Field
-          label="Amount (USD)"
-          htmlFor="payment-amount"
-          error={form.formState.errors.amount?.message}
-          hint={
-            <div className="flex items-center justify-between gap-2">
-              <span>Maximum {formatUsd(order.balanceDueCents)}</span>
-              <button
-                className="font-medium text-slate-700 underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
-                type="button"
-                onClick={() =>
-                  form.setValue(
-                    "amount",
-                    (order.balanceDueCents / 100).toFixed(2),
-                    {
-                      shouldValidate: true,
-                    },
-                  )
-                }
-              >
-                Use remaining
-              </button>
-            </div>
-          }
-        >
-          <div className="relative">
-            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-sm text-slate-400">
-              $
-            </span>
-            <Input
-              id="payment-amount"
-              className="pl-7 tabular-nums"
-              inputMode="decimal"
-              autoComplete="off"
-              aria-invalid={form.formState.errors.amount !== undefined}
-              aria-describedby="payment-amount-error"
-              {...form.register("amount")}
-            />
-          </div>
-        </Field>
-
-        <Field
-          label="Payment date"
-          htmlFor="payment-date"
-          error={form.formState.errors.paymentDate?.message}
-        >
-          <Input
-            id="payment-date"
-            type="date"
-            max={todayUtc}
-            aria-invalid={form.formState.errors.paymentDate !== undefined}
-            {...form.register("paymentDate")}
-          />
-        </Field>
-
-        <Field
-          label="Note"
-          htmlFor="payment-note"
-          optional
-          error={form.formState.errors.note?.message}
-        >
-          <Textarea
-            id="payment-note"
-            rows={3}
-            placeholder="Bank transfer, reference, or context"
-            aria-invalid={form.formState.errors.note !== undefined}
-            {...form.register("note")}
-          />
-        </Field>
-
-        {serverError ? <Alert>{serverError}</Alert> : null}
-      </form>
-    </Modal>
+          </Button.Root>
+        </Modal.Footer>
+      </Modal.Content>
+    </Modal.Root>
   );
 }

@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 
 import { useLogout } from "../../features/auth/queries";
-import { Button } from "../ui/button";
+import * as Button from "../ui/button";
 
 export function LogoutButton() {
   const logout = useLogout();
@@ -20,18 +20,19 @@ export function LogoutButton() {
 
   return (
     <div className="grid gap-1.5">
-      <Button
+      <Button.Root
         className="w-full"
-        variant="secondary"
+        variant="neutral"
+        mode="stroke"
         size="small"
         type="button"
         disabled={logout.isPending}
         onClick={() => void handleLogout()}
       >
         {logout.isPending ? "Signing out…" : "Sign out"}
-      </Button>
+      </Button.Root>
       {logout.isError && (
-        <p className="text-xs text-red-600" role="alert">
+        <p className="text-paragraph-xs text-error-base" role="alert">
           Sign out failed. Please try again.
         </p>
       )}

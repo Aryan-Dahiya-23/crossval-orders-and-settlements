@@ -2,7 +2,7 @@
 
 ## Purpose
 
-This document defines the frontend architecture for the Orders & Settlements dashboard. Phase 3 implements the authentication subset; product dashboard routes and components remain planned for later phases.
+This document defines the frontend architecture for the Orders & Settlements dashboard. Phases 3 through 7 implement authentication, the responsive application shell, order detail and payment views, and the server-backed operational dashboard; order authoring remains planned for Phase 8.
 
 ## Technology choices
 
@@ -54,12 +54,13 @@ The frontend does not own:
 
 Not-found and unexpected-error views are required. Unauthorized requests route to login only after the shared authentication policy is applied.
 
-Phase 3 route status:
+Current route status:
 
 - `/` redirects to `/orders`.
 - `/login` and `/register` use public-only boundaries and redirect an authenticated viewer to `/orders`.
-- `/orders` uses a client authentication boundary and renders the Phase 6 operational dashboard inside the responsive application shell.
-- Product order creation, detail, edit, dashboard data, and navigation shell are not implemented yet.
+- `/orders` uses a client authentication boundary and renders the Phase 7 server-backed operational dashboard inside the responsive application shell.
+- `/orders/[orderId]` renders order financials, line items, payment history, and the safe settlement flow.
+- Product order creation, edit, and delete interfaces are not implemented yet.
 
 ## Component boundaries
 
@@ -151,9 +152,11 @@ Rules:
 
 Payment mutation results must come from the committed server response. The UI must not locally subtract a payment from a balance before commit.
 
-Phase 5 implementation provides the first concrete order query-key factory, account summary/recent-order reads, order detail, and payment mutation. The dialog retains a UUID for the same normalized logical attempt, creates a new key when the form materially changes, never retries automatically, and invalidates detail/list/summary keys only after a committed response. Full URL-backed filters and pagination remain Phase 7 work.
+Phase 5 implementation provides the first concrete order query-key factory, account summary/recent-order reads, order detail, and payment mutation. The dialog retains a UUID for the same normalized logical attempt, creates a new key when the form materially changes, never retries automatically, and invalidates detail/list/summary keys only after a committed response.
 
-Phase 6 adds the local presentation foundation: Tailwind CSS utilities, Radix behavior, Remix icons, and focused Align UI-style button, input, modal, badge, alert, and skeleton primitives. The shell, auth screens, dashboard, detail view, and settlement modal use those primitives consistently. Dashboard search and status controls currently filter the loaded page for immediate usability; Phase 7 moves applied filter, sort, and pagination state into the URL and query keys so the API remains authoritative across the complete dataset.
+Phase 6 adds the local presentation foundation: Tailwind CSS utilities, Radix behavior, Remix icons, and focused Align UI-style button, input, modal, badge, alert, and skeleton primitives. The shell, auth screens, dashboard, detail view, and settlement modal use those primitives consistently.
+
+Phase 7 makes the API authoritative across the complete owned dataset. Applied customer search, status, sort, direction, page, and page size are parsed from a canonical default-free URL and included as stable primitives in every list query key. Requests serialize all values explicitly, propagate cancellation, and retain previous rows during transitions. The dashboard exposes debounced customer-prefix search, allowlisted sorting, 10/25/50 row sizes, authoritative ranges, malformed/out-of-range URL recovery, and distinct initial, updating, empty, filtered-empty, and error states. Account summary cards remain intentionally unfiltered because the existing summary endpoint is account-wide.
 
 ### Invalidation strategy
 

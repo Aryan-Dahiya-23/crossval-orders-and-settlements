@@ -17,7 +17,7 @@ export default function LoginPage() {
       >
         <Suspense
           fallback={
-            <p className="text-sm text-slate-500">Preparing sign in…</p>
+            <p className="text-paragraph-xs text-text-soft-400">Preparing sign in…</p>
           }
         >
           <LoginForm />

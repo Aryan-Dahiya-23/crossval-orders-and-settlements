@@ -1,22 +1,34 @@
 import type { OrderStatus } from "@crossval/contracts";
-
+import * as StatusBadgePrimitive from "../ui/status-badge";
 import { statusLabel } from "../../lib/format";
-import { StatusBadge as AlignStatusBadge } from "../ui/status-badge";
-
-const statusTone: Record<
-  OrderStatus,
-  "neutral" | "info" | "success" | "danger"
-> = {
-  pending: "neutral",
-  partially_paid: "info",
-  paid: "success",
-  overdue: "danger",
-};
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
+  let statusVariant: "completed" | "pending" | "failed" | "disabled" = "pending";
+  let dotColorClass = "";
+
+  switch (status) {
+    case "paid":
+      statusVariant = "completed";
+      dotColorClass = "text-success-base";
+      break;
+    case "partially_paid":
+      statusVariant = "pending";
+      dotColorClass = "text-blue-500";
+      break;
+    case "pending":
+      statusVariant = "pending";
+      dotColorClass = "text-warning-base";
+      break;
+    case "overdue":
+      statusVariant = "failed";
+      dotColorClass = "text-error-base";
+      break;
+  }
+
   return (
-    <AlignStatusBadge tone={statusTone[status]}>
+    <StatusBadgePrimitive.Root variant="stroke" status={statusVariant}>
+      <StatusBadgePrimitive.Dot className={dotColorClass} />
       {statusLabel(status)}
-    </AlignStatusBadge>
+    </StatusBadgePrimitive.Root>
   );
 }

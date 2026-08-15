@@ -15,7 +15,7 @@ export const signupRequestSchema = z.strictObject({
   email: authEmailSchema,
   password: z
     .string()
-    .min(12, "Password must contain at least 12 characters.")
+    .min(6, "Password must contain at least 6 characters.")
     .max(128, "Password must contain at most 128 characters."),
 });
 

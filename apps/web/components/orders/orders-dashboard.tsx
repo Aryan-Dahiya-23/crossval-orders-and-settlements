@@ -1,7 +1,12 @@
 "use client";
 
-import type { OrderStatus, Viewer } from "@crossval/contracts";
+import type {
+  OrderListItem,
+  OrderListQuery,
+  Viewer,
+} from "@crossval/contracts";
 import {
+  RiAddLine,
   RiArrowRightLine,
   RiBankCardLine,
   RiCheckboxCircleLine,
@@ -9,45 +14,77 @@ import {
   RiFundsLine,
   RiSearchLine,
 } from "@remixicon/react";
-import Link from "next/link";
-import { useMemo, useState } from "react";
 
+import Link from "next/link";
+import { useRouter, useSearchParams } from "next/navigation";
+import { useCallback, useEffect, useMemo, type ReactNode } from "react";
+
+import {
+  defaultOrderListQuery,
+  orderListHref,
+  parseOrderListState,
+  patchOrderListState,
+  shouldCorrectOrderPage,
+} from "../../features/orders/list-state";
 import { useOrders, useOrderSummary } from "../../features/orders/queries";
 import { formatDateOnly, formatUsd } from "../../lib/format";
 import { AppShell } from "../layout/app-shell";
 import { PageHeader } from "../layout/page-header";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
+import { Alert } from "../ui/alert";
+import * as Button from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
+import * as Table from "../ui/table";
+import { OrdersPagination } from "./orders-pagination";
+import { OrdersToolbar } from "./orders-toolbar";
 import { StatusBadge } from "./status-badge";
 
-type StatusFilter = "all" | OrderStatus;
-
-const filters: Array<{ value: StatusFilter; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "pending", label: "Pending" },
-  { value: "partially_paid", label: "Partially paid" },
-  { value: "paid", label: "Paid" },
-  { value: "overdue", label: "Overdue" },
-];
-
 export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
-  const orders = useOrders();
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const rawSearchParams = searchParams.toString();
+  const query = useMemo(
+    () => parseOrderListState(new URLSearchParams(rawSearchParams)),
+    [rawSearchParams],
+  );
+  const orders = useOrders(query);
   const summary = useOrderSummary();
-  const [status, setStatus] = useState<StatusFilter>("all");
-  const [search, setSearch] = useState("");
 
-  const visibleOrders = useMemo(() => {
-    if (!orders.data) return [];
-    const term = search.trim().toLocaleLowerCase();
-    return orders.data.data.filter(
-      (order) =>
-        (status === "all" || order.status === status) &&
-        (term.length === 0 ||
-          order.customerName.toLocaleLowerCase().includes(term) ||
-          order.displayId.toLocaleLowerCase().includes(term)),
-    );
-  }, [orders.data, search, status]);
+  const replaceQuery = useCallback(
+    (next: OrderListQuery) => {
+      router.replace(orderListHref(next), { scroll: false });
+    },
+    [router],
+  );
+  const handleSearchChange = useCallback(
+    (search: string | null) =>
+      replaceQuery(patchOrderListState(query, { search })),
+    [query, replaceQuery],
+  );
+
+  useEffect(() => {
+    const currentHref =
+      rawSearchParams.length > 0 ? `/orders?${rawSearchParams}` : "/orders";
+    const canonicalHref = orderListHref(query);
+    if (currentHref !== canonicalHref) replaceQuery(query);
+  }, [query, rawSearchParams, replaceQuery]);
+
+  useEffect(() => {
+    if (
+      orders.data &&
+      !orders.isPlaceholderData &&
+      shouldCorrectOrderPage(orders.data.meta)
+    ) {
+      replaceQuery(
+        patchOrderListState(
+          query,
+          { page: orders.data.meta.totalPages },
+          { resetPage: false },
+        ),
+      );
+    }
+  }, [orders.data, orders.isPlaceholderData, query, replaceQuery]);
+
+  const hasActiveFilters = query.status !== "all" || Boolean(query.search);
 
   return (
     <AppShell viewer={viewer}>
@@ -55,27 +92,32 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
         eyebrow="Finance operations"
         title="Orders & settlements"
         description="Monitor receivables, follow balances, and keep every settlement traceable from one operational view."
+        action={
+          <Button.Root variant="primary" size="small" className="rounded-10" asChild>
+            <Link href="/orders/new">
+              <Button.Icon as={RiAddLine} />
+              New order
+            </Link>
+          </Button.Root>
+        }
       />
 
       {summary.isPending ? (
         <section
-          className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
           aria-label="Loading account summary"
         >
           {[0, 1, 2, 3].map((item) => (
-            <Skeleton className="h-[126px] rounded-xl" key={item} />
+            <Skeleton className="h-[148px] rounded-2xl" key={item} />
           ))}
         </section>
       ) : summary.isError ? (
-        <div
-          className="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800"
-          role="alert"
-        >
-          Account summary is temporarily unavailable.
+        <div className="mt-6">
+          <Alert tone="warning">Account summary is temporarily unavailable.</Alert>
         </div>
       ) : (
         <section
-          className="mt-6 grid gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-4"
           aria-label="Account summary"
         >
           <SummaryCard
@@ -107,218 +149,231 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
       )}
 
       <section
-        className="mt-6 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+        className="mt-6 overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200"
         aria-labelledby="orders-heading"
+        aria-busy={orders.isFetching}
       >
-        <div className="flex flex-col gap-4 border-b border-slate-200 p-4 sm:p-5">
+        <div className="flex flex-col gap-4 border-b border-stroke-soft-200 p-5">
           <div className="flex items-center justify-between gap-3">
             <div>
               <h2
                 id="orders-heading"
-                className="text-base font-semibold text-slate-950"
+                className="text-label-md font-semibold text-text-strong-950"
               >
                 All orders
               </h2>
-              <p className="mt-1 text-sm text-slate-500">
-                Review due dates and settlement progress.
+              <p className="mt-0.5 text-paragraph-xs text-text-sub-600">
+                Review due dates and settlement progress across your account.
               </p>
             </div>
-            {orders.isFetching && !orders.isPending ? (
-              <span className="text-xs text-slate-400">Refreshing…</span>
-            ) : null}
+            <span className="min-h-4 text-paragraph-xs text-text-soft-400" aria-live="polite">
+              {orders.isFetching && !orders.isPending
+                ? "Updating orders…"
+                : null}
+            </span>
           </div>
 
-          <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
-            <div
-              className="flex gap-1 overflow-x-auto pb-1"
-              role="group"
-              aria-label="Filter orders by status"
-            >
-              {filters.map((filter) => (
-                <button
-                  key={filter.value}
-                  type="button"
-                  aria-pressed={status === filter.value}
-                  className="h-8 shrink-0 rounded-lg px-3 text-xs font-medium text-slate-500 outline-none transition hover:bg-slate-100 hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-950 aria-pressed:bg-slate-950 aria-pressed:text-white"
-                  onClick={() => setStatus(filter.value)}
-                >
-                  {filter.label}
-                </button>
-              ))}
-            </div>
-            <label className="relative block w-full xl:w-[280px]">
-              <span className="sr-only">Search orders</span>
-              <RiSearchLine className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-slate-400" />
-              <Input
-                className="pl-9"
-                type="search"
-                value={search}
-                placeholder="Search customer or order ID"
-                onChange={(event) => setSearch(event.target.value)}
-              />
-            </label>
-          </div>
+          <OrdersToolbar
+            key={query.search ?? ""}
+            query={query}
+            onStatusChange={(status) =>
+              replaceQuery(patchOrderListState(query, { status }))
+            }
+            onSearchChange={handleSearchChange}
+            onSortChange={(sort, direction) =>
+              replaceQuery(patchOrderListState(query, { sort, direction }))
+            }
+          />
         </div>
 
+        {orders.isError && orders.data ? (
+          <div className="border-b border-stroke-soft-200 p-4">
+            <Alert tone="warning">
+              The latest orders could not be loaded. Showing the previous
+              results; try again when the connection recovers.
+            </Alert>
+          </div>
+        ) : null}
+
         {orders.isPending ? (
-          <div className="grid gap-px bg-slate-100" aria-label="Loading orders">
-            {[0, 1, 2, 3].map((item) => (
-              <Skeleton className="h-[72px] rounded-none bg-white" key={item} />
+          <div className="p-5 space-y-3" aria-label="Loading orders">
+            {[0, 1, 2, 3, 4].map((item) => (
+              <Skeleton className="h-16 rounded-xl" key={item} />
             ))}
           </div>
-        ) : orders.isError ? (
+        ) : orders.isError && !orders.data ? (
           <div
-            className="grid justify-items-start gap-3 px-5 py-14 text-sm text-slate-500"
+            className="grid justify-items-start gap-3 p-8 text-paragraph-sm text-text-sub-600"
             role="alert"
           >
             <div>
-              <h3 className="font-semibold text-slate-950">
+              <h3 className="text-label-sm font-semibold text-text-strong-950">
                 Orders couldn&apos;t be loaded
               </h3>
-              <p className="mt-1">Check the API connection and try again.</p>
+              <p className="mt-1 text-paragraph-xs">Check the API connection and try again.</p>
             </div>
-            <Button
-              type="button"
+            <Button.Root
+              variant="neutral"
+              mode="stroke"
               size="small"
+              type="button"
               onClick={() => void orders.refetch()}
             >
               Try again
-            </Button>
+            </Button.Root>
           </div>
-        ) : visibleOrders.length === 0 ? (
-          <div className="grid justify-items-center px-5 py-16 text-center">
-            <span className="grid size-11 place-items-center rounded-full bg-slate-100 text-slate-500">
+        ) : orders.data && orders.data.data.length === 0 ? (
+          <div className="grid justify-items-center p-12 text-center">
+            <span className="flex size-12 items-center justify-center rounded-full bg-bg-weak-50 ring-1 ring-inset ring-stroke-soft-200 text-text-sub-600">
               <RiSearchLine className="size-5" />
             </span>
-            <h3 className="mt-4 text-sm font-semibold text-slate-950">
-              {orders.data.data.length === 0
-                ? "No orders yet"
-                : "No matching orders"}
+            <h3 className="mt-4 text-label-sm font-semibold text-text-strong-950">
+              {hasActiveFilters ? "No matching orders" : "No orders yet"}
             </h3>
-            <p className="mt-1 max-w-sm text-sm leading-6 text-slate-500">
-              {orders.data.data.length === 0
-                ? "Orders created through the API will appear here with their live settlement state."
-                : "Try another search term or status filter."}
+            <p className="mt-1 max-w-sm text-paragraph-xs text-text-sub-600">
+              {hasActiveFilters
+                ? "Try another customer search or status filter."
+                : "Orders created through the API will appear here with their live settlement state."}
             </p>
-            {orders.data.data.length > 0 ? (
-              <Button
+            {hasActiveFilters ? (
+              <Button.Root
                 className="mt-4"
-                variant="secondary"
+                variant="neutral"
+                mode="stroke"
                 size="small"
                 type="button"
-                onClick={() => {
-                  setSearch("");
-                  setStatus("all");
-                }}
+                onClick={() => replaceQuery(defaultOrderListQuery)}
               >
                 Clear filters
-              </Button>
-            ) : null}
-          </div>
-        ) : (
-          <>
-            <div className="hidden overflow-x-auto md:block">
-              <table className="w-full min-w-[800px] border-collapse text-left">
-                <thead>
-                  <tr className="border-b border-slate-200 bg-slate-50/70 text-xs font-medium text-slate-500">
-                    <th className="px-5 py-3 font-medium">Order</th>
-                    <th className="px-4 py-3 font-medium">Status</th>
-                    <th className="px-4 py-3 font-medium">Due date</th>
-                    <th className="px-4 py-3 text-right font-medium">Total</th>
-                    <th className="px-4 py-3 text-right font-medium">Paid</th>
-                    <th className="px-5 py-3 text-right font-medium">
-                      Balance
-                    </th>
-                    <th className="w-12" aria-label="Open order" />
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100">
-                  {visibleOrders.map((order) => (
-                    <tr
-                      key={order.id}
-                      className="group transition hover:bg-slate-50/80"
-                    >
-                      <td className="px-5 py-4">
-                        <Link
-                          className="font-medium text-slate-950 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-slate-950"
-                          href={`/orders/${order.id}`}
-                        >
-                          {order.customerName}
-                        </Link>
-                        <span className="mt-1 block font-mono text-xs text-slate-400">
-                          {order.displayId}
-                        </span>
-                      </td>
-                      <td className="px-4 py-4">
-                        <StatusBadge status={order.status} />
-                      </td>
-                      <td className="px-4 py-4 text-sm text-slate-600">
-                        {formatDateOnly(order.dueDate)}
-                      </td>
-                      <td className="px-4 py-4 text-right text-sm tabular-nums text-slate-600">
-                        {formatUsd(order.totalAmountCents)}
-                      </td>
-                      <td className="px-4 py-4 text-right text-sm tabular-nums text-slate-600">
-                        {formatUsd(order.paidAmountCents)}
-                      </td>
-                      <td className="px-5 py-4 text-right text-sm font-semibold tabular-nums text-slate-950">
-                        {formatUsd(order.balanceDueCents)}
-                      </td>
-                      <td className="pr-4">
-                        <Link
-                          className="grid size-8 place-items-center rounded-lg text-slate-400 outline-none transition group-hover:text-slate-700 hover:bg-slate-100 focus-visible:ring-2 focus-visible:ring-slate-950"
-                          href={`/orders/${order.id}`}
-                          aria-label={`Open ${order.displayId}`}
-                        >
-                          <RiArrowRightLine className="size-4" />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
-            <div className="divide-y divide-slate-100 md:hidden">
-              {visibleOrders.map((order) => (
-                <Link
-                  key={order.id}
-                  href={`/orders/${order.id}`}
-                  className="block p-4 outline-none transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-slate-950"
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-slate-950">
-                        {order.customerName}
-                      </p>
-                      <p className="mt-1 font-mono text-xs text-slate-400">
-                        {order.displayId}
-                      </p>
-                    </div>
-                    <StatusBadge status={order.status} />
-                  </div>
-                  <dl className="mt-4 grid grid-cols-3 gap-3">
-                    <MobileMetric
-                      label="Due"
-                      value={formatDateOnly(order.dueDate)}
-                    />
-                    <MobileMetric
-                      label="Total"
-                      value={formatUsd(order.totalAmountCents)}
-                    />
-                    <MobileMetric
-                      label="Balance"
-                      value={formatUsd(order.balanceDueCents)}
-                      strong
-                    />
-                  </dl>
+              </Button.Root>
+            ) : (
+              <Button.Root asChild className="mt-4" variant="primary" size="small">
+                <Link href="/orders/new">
+                  <Button.Icon as={RiAddLine} />
+                  Create order
                 </Link>
-              ))}
-            </div>
-          </>
-        )}
+              </Button.Root>
+            )}
+          </div>
+        ) : orders.data ? (
+          <OrderRows orders={orders.data.data} />
+        ) : null}
+
+        {orders.data ? (
+          <OrdersPagination
+            meta={orders.data.meta}
+            requestedPage={query.page}
+            requestedPageSize={query.pageSize}
+            isPlaceholderData={orders.isPlaceholderData}
+            onPageChange={(page) =>
+              replaceQuery(
+                patchOrderListState(query, { page }, { resetPage: false }),
+              )
+            }
+            onPageSizeChange={(pageSize) =>
+              replaceQuery(patchOrderListState(query, { pageSize }))
+            }
+          />
+        ) : null}
       </section>
     </AppShell>
+  );
+}
+
+function OrderRows({ orders }: { orders: OrderListItem[] }) {
+  return (
+    <>
+      <div className="hidden md:block p-4">
+        <Table.Root>
+          <Table.Header>
+            <tr>
+              <Table.Head>Order</Table.Head>
+              <Table.Head>Status</Table.Head>
+              <Table.Head>Due date</Table.Head>
+              <Table.Head className="text-right">Total</Table.Head>
+              <Table.Head className="text-right">Paid</Table.Head>
+              <Table.Head className="text-right">Balance</Table.Head>
+              <Table.Head className="w-12 text-center" aria-label="Open order" />
+            </tr>
+          </Table.Header>
+          <Table.Body spacing={6}>
+            {orders.map((order) => (
+              <Table.Row key={order.id}>
+                <Table.Cell>
+                  <Link
+                    className="font-medium text-text-strong-950 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-stroke-strong-950 rounded-sm"
+                    href={`/orders/${order.id}`}
+                  >
+                    {order.customerName}
+                  </Link>
+                  <span className="mt-0.5 block font-mono text-paragraph-xs text-text-soft-400">
+                    {order.displayId}
+                  </span>
+                </Table.Cell>
+                <Table.Cell>
+                  <StatusBadge status={order.status} />
+                </Table.Cell>
+                <Table.Cell className="text-paragraph-sm text-text-sub-600">
+                  {formatDateOnly(order.dueDate)}
+                </Table.Cell>
+                <Table.Cell className="text-right text-paragraph-sm tabular-nums text-text-sub-600">
+                  {formatUsd(order.totalAmountCents)}
+                </Table.Cell>
+                <Table.Cell className="text-right text-paragraph-sm tabular-nums text-text-sub-600">
+                  {formatUsd(order.paidAmountCents)}
+                </Table.Cell>
+                <Table.Cell className="text-right text-paragraph-sm font-semibold tabular-nums text-text-strong-950">
+                  {formatUsd(order.balanceDueCents)}
+                </Table.Cell>
+                <Table.Cell className="pr-4 text-right">
+                  <Link
+                    className="inline-flex size-8 items-center justify-center rounded-lg text-text-soft-400 outline-none transition group-hover/row:text-text-strong-950 hover:bg-bg-soft-200/60 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
+                    href={`/orders/${order.id}`}
+                    aria-label={`Open ${order.displayId}`}
+                  >
+                    <RiArrowRightLine className="size-4" />
+                  </Link>
+                </Table.Cell>
+              </Table.Row>
+            ))}
+          </Table.Body>
+        </Table.Root>
+      </div>
+
+      <div className="divide-y divide-stroke-soft-200 md:hidden">
+        {orders.map((order) => (
+          <Link
+            key={order.id}
+            href={`/orders/${order.id}`}
+            className="block p-4 outline-none transition hover:bg-bg-weak-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stroke-strong-950"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-label-sm font-semibold text-text-strong-950">
+                  {order.customerName}
+                </p>
+                <p className="mt-0.5 font-mono text-paragraph-xs text-text-soft-400">
+                  {order.displayId}
+                </p>
+              </div>
+              <StatusBadge status={order.status} />
+            </div>
+            <dl className="mt-4 grid grid-cols-3 gap-3">
+              <MobileMetric label="Due" value={formatDateOnly(order.dueDate)} />
+              <MobileMetric
+                label="Total"
+                value={formatUsd(order.totalAmountCents)}
+              />
+              <MobileMetric
+                label="Balance"
+                value={formatUsd(order.balanceDueCents)}
+                strong
+              />
+            </dl>
+          </Link>
+        ))}
+      </div>
+    </>
   );
 }
 
@@ -329,21 +384,21 @@ function SummaryCard({
   hint,
   danger = false,
 }: {
-  icon: React.ReactNode;
+  icon: ReactNode;
   label: string;
   value: string;
   hint: string;
   danger?: boolean;
 }) {
   return (
-    <article className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
+    <article className="relative flex flex-col rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-slate-500">{label}</span>
+        <span className="text-subheading-xs uppercase font-medium tracking-wide text-text-soft-400">{label}</span>
         <span
           className={
             danger
-              ? "grid size-8 place-items-center rounded-lg bg-red-50 text-red-600 [&>svg]:size-[18px]"
-              : "grid size-8 place-items-center rounded-lg bg-slate-100 text-slate-600 [&>svg]:size-[18px]"
+              ? "flex size-10 shrink-0 items-center justify-center rounded-full bg-error-lighter/50 text-error-base ring-1 ring-inset ring-error-light [&>svg]:size-5"
+              : "flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-weak-50 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200 [&>svg]:size-5"
           }
         >
           {icon}
@@ -352,13 +407,13 @@ function SummaryCard({
       <strong
         className={
           danger
-            ? "mt-4 block text-xl font-semibold tracking-[-0.03em] tabular-nums text-red-700"
-            : "mt-4 block text-xl font-semibold tracking-[-0.03em] tabular-nums text-slate-950"
+            ? "mt-4 block text-title-h5 font-semibold tracking-tight tabular-nums text-error-base"
+            : "mt-4 block text-title-h5 font-semibold tracking-tight tabular-nums text-text-strong-950"
         }
       >
         {value}
       </strong>
-      <span className="mt-1 block text-xs text-slate-400">{hint}</span>
+      <span className="mt-1 block text-paragraph-xs text-text-sub-600">{hint}</span>
     </article>
   );
 }
@@ -374,12 +429,12 @@ function MobileMetric({
 }) {
   return (
     <div>
-      <dt className="text-[11px] text-slate-400">{label}</dt>
+      <dt className="text-subheading-2xs uppercase text-text-soft-400">{label}</dt>
       <dd
         className={
           strong
-            ? "mt-1 truncate text-xs font-semibold tabular-nums text-slate-950"
-            : "mt-1 truncate text-xs tabular-nums text-slate-600"
+            ? "mt-1 truncate text-label-xs font-semibold tabular-nums text-text-strong-950"
+            : "mt-1 truncate text-paragraph-xs tabular-nums text-text-sub-600"
         }
       >
         {value}

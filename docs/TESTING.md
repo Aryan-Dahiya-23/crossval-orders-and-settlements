@@ -26,6 +26,8 @@ pnpm test
 pnpm test:integration
 ```
 
+The web unit suite contains 12 Phase 7 tests covering canonical URL parsing and serialization, invalid and repeated parameter recovery, search normalization, pagination resets and ranges, out-of-range correction, stable query-key composition and prefixes, and explicit encoded request serialization.
+
 The current real-MongoDB Atlas integration suite contains 31 tests: five database-foundation tests, eleven authentication tests, seven order API tests, and eight atomic-payment tests. In addition to the existing migration, authentication, ownership, order CRUD, status, and projection coverage, it proves partial/exact settlement, overpayment rejection, semantic payment dates, ownership concealment, stable idempotent replay, changed-payload conflicts, duplicate concurrent requests, sufficient-balance predicate rechecks, exact concurrent settlement, and payment-versus-edit/delete serialization through two independent MongoDB clients.
 
 The API package keeps integration files out of its ordinary unit command. `pnpm test:integration` runs the database suites serially so each suite can own and drop an isolated generated test database safely.
@@ -93,6 +95,8 @@ Also prove that `paid` wins over an old due date and that due-today is not overd
 - [x] registration can be disabled and repeated credential attempts are rate limited safely.
 
 Phase 3 also passed a live browser smoke on 2026-08-14: protected-route redirect, signup, authenticated refresh, generic invalid-login feedback, logout, post-logout route rejection, and returning-user login. A committed automated Playwright suite remains part of the later end-to-end phase.
+
+Phase 7 passed a live browser verification on 2026-08-15 at desktop and 390 px mobile widths: default and second-page ranges, debounced server search, status filtering, all supported sorting state, malformed/default URL canonicalization, out-of-range page recovery, responsive mobile cards and navigation, and payment-driven list/summary invalidation. No horizontal overflow or material browser-console errors were observed. The temporary Atlas user, sessions, and 12 orders were removed afterward.
 
 ### Ownership
 

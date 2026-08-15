@@ -4,7 +4,7 @@ These instructions apply to the entire repository. Codex reads repository-level 
 
 ## Current project state
 
-Phases 1 through 6 are complete. Phase 7 has not started.
+Phases 1 through 10 are complete. Phases 11 and 12 (Deployment and Submission Audit) are next.
 
 - The Next.js web app, Express API, contracts package, React Query provider, and shared tooling are implemented.
 - MongoDB configuration, the reusable driver lifecycle, typed collections, strict validators, named indexes, versioned migrations, seed/reset tooling, and real-database integration tests are implemented.
@@ -12,7 +12,9 @@ Phases 1 through 6 are complete. Phase 7 has not started.
 - Order CRUD, summary, derived status, ownership-scoped list/detail queries, and conditional unpaid edit/delete behavior are implemented and verified against MongoDB Atlas.
 - Atomic payment recording, idempotent replay, actionable balance errors, two-client concurrency tests, and the essential order/payment React Query experience are implemented.
 - A focused local Align UI component foundation, responsive application shell, redesigned auth screens, dashboard, order detail, and payment modal are implemented.
-- Do not begin URL-backed/server-backed dashboard controls or the order create/edit experience until the user explicitly approves the relevant next phase.
+- URL-backed server-side dashboard search, status filtering, sorting, pagination, stable React Query keys, and previous-data transitions are implemented.
+- Order creation (`/orders/new`), replacement edit (`/orders/[orderId]/edit`), unpaid deletion, and locked order indicators are fully implemented and verified.
+- Multi-tier E2E testing, boundary cases, idempotency verification, and concurrency stress testing are complete and verified.
 - Preserve the Phase 2 database boundary rather than introducing an ODM or generic repository in later phases.
 - Treat `orders-and-settlements.pdf` as the original assignment source.
 - Treat the three previously inspected dashboard repositories as read-only design references. Never modify them, import them at runtime, or make this project depend on them.

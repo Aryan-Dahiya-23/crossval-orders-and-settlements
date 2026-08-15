@@ -3,7 +3,6 @@
 import type { Viewer } from "@crossval/contracts";
 import {
   RiArrowLeftLine,
-  RiCheckboxCircleLine,
   RiMoneyDollarCircleLine,
 } from "@remixicon/react";
 import Link from "next/link";
@@ -15,8 +14,12 @@ import { formatDateOnly, formatInstant, formatUsd } from "../../lib/format";
 import { ProtectedRoute } from "../auth/auth-boundary";
 import { AppShell } from "../layout/app-shell";
 import { Alert } from "../ui/alert";
-import { Button } from "../ui/button";
+import * as Button from "../ui/button";
 import { Skeleton } from "../ui/skeleton";
+import * as Table from "../ui/table";
+import { OrderActionBar } from "./order-action-bar";
+import { OrderDeleteDialog } from "./order-delete-dialog";
+import { OrderLockBanner } from "./order-lock-banner";
 import { PaymentDialog } from "./payment-dialog";
 import { StatusBadge } from "./status-badge";
 
@@ -37,6 +40,7 @@ function OrderDetailContent({
 }) {
   const order = useOrderDetail(orderId);
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [deleteOpen, setDeleteOpen] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   if (order.isPending) {
@@ -53,25 +57,25 @@ function OrderDetailContent({
           role="alert"
         >
           <div>
-            <span className="mx-auto grid size-11 place-items-center rounded-full bg-red-50 text-red-600">
-              <RiMoneyDollarCircleLine className="size-5" />
+            <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-error-lighter/50 text-error-base ring-1 ring-inset ring-error-light">
+              <RiMoneyDollarCircleLine className="size-6" />
             </span>
-            <p className="mt-4 text-xs font-semibold uppercase tracking-[0.08em] text-slate-400">
+            <p className="mt-4 text-subheading-xs font-semibold uppercase tracking-wider text-text-soft-400">
               {notFound ? "Not found" : "Connection problem"}
             </p>
-            <h1 className="mt-2 text-2xl font-semibold tracking-[-0.03em] text-slate-950">
+            <h1 className="mt-2 text-title-h4 font-semibold text-text-strong-950">
               {notFound
                 ? "This order isn't available"
                 : "The order couldn't be loaded"}
             </h1>
-            <p className="mt-3 text-sm leading-6 text-slate-500">
+            <p className="mt-3 text-paragraph-sm leading-6 text-text-sub-600">
               {notFound
                 ? "It may not exist or may belong to another workspace."
                 : "Check the API connection and try again."}
             </p>
-            <Button asChild className="mt-5" variant="secondary">
+            <Button.Root asChild className="mt-5" variant="neutral" mode="stroke" size="medium">
               <Link href="/orders">Back to orders</Link>
-            </Button>
+            </Button.Root>
           </div>
         </div>
       </AppShell>
@@ -83,45 +87,44 @@ function OrderDetailContent({
   return (
     <AppShell viewer={viewer}>
       <Link
-        className="inline-flex items-center gap-1.5 rounded-lg text-sm font-medium text-slate-500 outline-none transition hover:text-slate-950 focus-visible:ring-2 focus-visible:ring-slate-950"
+        className="inline-flex items-center gap-1.5 rounded-lg text-paragraph-sm font-medium text-text-sub-600 outline-none transition hover:text-text-strong-950 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
         href="/orders"
       >
         <RiArrowLeftLine className="size-4" />
         All orders
       </Link>
 
-      <header className="mt-5 flex flex-col gap-5 border-b border-slate-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <header className="mt-5 flex flex-col gap-5 border-b border-stroke-soft-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-2.5">
-            <span className="font-mono text-xs font-medium text-slate-400">
+            <span className="font-mono text-paragraph-xs font-medium text-text-soft-400">
               {detail.displayId}
             </span>
             <StatusBadge status={detail.status} />
           </div>
-          <h1 className="text-2xl font-semibold tracking-[-0.035em] text-slate-950 sm:text-[28px]">
+          <h1 className="text-title-h5 font-semibold text-text-strong-950 sm:text-title-h4">
             {detail.customerName}
           </h1>
-          <p className="mt-2 text-sm text-slate-500">
+          <p className="mt-2 text-paragraph-sm text-text-sub-600">
             Payment due {formatDateOnly(detail.dueDate)}
           </p>
         </div>
-        {detail.balanceDueCents > 0 ? (
-          <Button
-            type="button"
-            onClick={() => {
-              setSuccessMessage(null);
-              setPaymentOpen(true);
-            }}
-          >
-            <RiMoneyDollarCircleLine className="size-[18px]" />
-            Record payment
-          </Button>
-        ) : (
-          <span className="inline-flex h-10 items-center gap-2 self-start rounded-[10px] bg-emerald-50 px-3.5 text-sm font-semibold text-emerald-700 ring-1 ring-inset ring-emerald-200 sm:self-auto">
-            <RiCheckboxCircleLine className="size-[18px]" /> Paid in full
-          </span>
-        )}
+
+        <OrderActionBar
+          order={detail}
+          onOpenPayment={() => {
+            setSuccessMessage(null);
+            setPaymentOpen(true);
+          }}
+          onOpenDelete={() => setDeleteOpen(true)}
+        />
       </header>
+
+      {!detail.isEditable || detail.payments.length > 0 ? (
+        <div className="mt-5">
+          <OrderLockBanner paymentCount={detail.payments.length} />
+        </div>
+      ) : null}
 
       {successMessage ? (
         <div className="mt-5">
@@ -130,7 +133,7 @@ function OrderDetailContent({
       ) : null}
 
       <section
-        className="mt-6 grid overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm sm:grid-cols-3"
+        className="mt-6 grid overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-stroke-soft-200"
         aria-label="Order financial summary"
       >
         <FinancialMetric
@@ -150,7 +153,7 @@ function OrderDetailContent({
 
       <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,.65fr)]">
         <section
-          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200"
           aria-labelledby="items-title"
         >
           <PanelHeader
@@ -158,44 +161,40 @@ function OrderDetailContent({
             description={`${detail.items.length} item${detail.items.length === 1 ? "" : "s"} on this order`}
             id="items-title"
           />
-          <div className="overflow-x-auto">
-            <table className="w-full min-w-[600px] border-collapse text-left">
-              <thead>
-                <tr className="border-b border-slate-200 bg-slate-50/70 text-xs text-slate-500">
-                  <th className="px-5 py-3 font-medium">Description</th>
-                  <th className="px-4 py-3 text-center font-medium">Qty</th>
-                  <th className="px-4 py-3 text-right font-medium">
-                    Unit price
-                  </th>
-                  <th className="px-5 py-3 text-right font-medium">
-                    Line total
-                  </th>
+          <div className="p-4 overflow-x-auto">
+            <Table.Root>
+              <Table.Header>
+                <tr>
+                  <Table.Head>Description</Table.Head>
+                  <Table.Head className="text-center">Qty</Table.Head>
+                  <Table.Head className="text-right">Unit price</Table.Head>
+                  <Table.Head className="text-right">Line total</Table.Head>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+              </Table.Header>
+              <Table.Body spacing={6}>
                 {detail.items.map((item) => (
-                  <tr key={item.id}>
-                    <td className="px-5 py-4 text-sm font-medium text-slate-800">
+                  <Table.Row key={item.id}>
+                    <Table.Cell className="font-medium text-text-strong-950">
                       {item.description}
-                    </td>
-                    <td className="px-4 py-4 text-center text-sm tabular-nums text-slate-500">
+                    </Table.Cell>
+                    <Table.Cell className="text-center tabular-nums text-text-sub-600">
                       {item.quantity}
-                    </td>
-                    <td className="px-4 py-4 text-right text-sm tabular-nums text-slate-500">
+                    </Table.Cell>
+                    <Table.Cell className="text-right tabular-nums text-text-sub-600">
                       {formatUsd(item.unitPriceCents)}
-                    </td>
-                    <td className="px-5 py-4 text-right text-sm font-semibold tabular-nums text-slate-950">
+                    </Table.Cell>
+                    <Table.Cell className="text-right font-semibold tabular-nums text-text-strong-950">
                       {formatUsd(item.lineTotalCents)}
-                    </td>
-                  </tr>
+                    </Table.Cell>
+                  </Table.Row>
                 ))}
-              </tbody>
-            </table>
+              </Table.Body>
+            </Table.Root>
           </div>
         </section>
 
         <section
-          className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm"
+          className="overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200"
           aria-labelledby="payments-title"
         >
           <PanelHeader
@@ -204,36 +203,36 @@ function OrderDetailContent({
             id="payments-title"
           />
           {detail.payments.length === 0 ? (
-            <div className="px-5 py-10 text-center">
-              <span className="mx-auto grid size-10 place-items-center rounded-full bg-slate-100 text-slate-500">
+            <div className="p-8 text-center">
+              <span className="mx-auto flex size-10 items-center justify-center rounded-full bg-bg-weak-50 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200">
                 <RiMoneyDollarCircleLine className="size-5" />
               </span>
-              <p className="mt-3 text-sm font-medium text-slate-800">
+              <p className="mt-3 text-paragraph-sm font-medium text-text-strong-950">
                 No payments recorded
               </p>
-              <p className="mt-1 text-xs leading-5 text-slate-500">
+              <p className="mt-1 text-paragraph-xs leading-5 text-text-sub-600">
                 The full order balance remains outstanding.
               </p>
             </div>
           ) : (
-            <ol className="divide-y divide-slate-100">
+            <ol className="divide-y divide-stroke-soft-200">
               {detail.payments.map((payment) => (
                 <li className="p-5" key={payment.id}>
                   <div className="flex items-baseline justify-between gap-3">
-                    <strong className="text-sm font-semibold tabular-nums text-slate-950">
+                    <strong className="text-paragraph-sm font-semibold tabular-nums text-text-strong-950">
                       {formatUsd(payment.amountCents)}
                     </strong>
-                    <span className="text-xs text-slate-500">
+                    <span className="text-paragraph-xs text-text-sub-600">
                       {formatDateOnly(payment.paymentDate)}
                     </span>
                   </div>
                   {payment.note ? (
-                    <p className="mt-2 text-sm leading-5 text-slate-600">
+                    <p className="mt-2 text-paragraph-sm leading-5 text-text-sub-600">
                       {payment.note}
                     </p>
                   ) : null}
                   <time
-                    className="mt-2 block text-[11px] text-slate-400"
+                    className="mt-2 block text-subheading-2xs text-text-soft-400"
                     dateTime={payment.createdAt}
                   >
                     Recorded {formatInstant(payment.createdAt)}
@@ -256,6 +255,12 @@ function OrderDetailContent({
           );
         }}
       />
+
+      <OrderDeleteDialog
+        open={deleteOpen}
+        order={detail}
+        onClose={() => setDeleteOpen(false)}
+      />
     </AppShell>
   );
 }
@@ -273,12 +278,12 @@ function FinancialMetric({
     <div
       className={
         emphasis
-          ? "border-t border-slate-200 bg-slate-50 p-5 sm:border-l sm:border-t-0"
-          : "border-t border-slate-200 p-5 first:border-t-0 sm:border-l sm:border-t-0 sm:first:border-l-0"
+          ? "bg-bg-weak-50/70 p-5"
+          : "p-5"
       }
     >
-      <span className="text-xs font-medium text-slate-500">{label}</span>
-      <strong className="mt-2 block text-xl font-semibold tracking-[-0.03em] tabular-nums text-slate-950">
+      <span className="text-subheading-xs uppercase font-medium text-text-soft-400">{label}</span>
+      <strong className="mt-2 block text-title-h5 font-semibold tracking-tight tabular-nums text-text-strong-950">
         {value}
       </strong>
     </div>
@@ -295,11 +300,11 @@ function PanelHeader({
   id: string;
 }) {
   return (
-    <div className="border-b border-slate-200 px-5 py-4">
-      <h2 className="text-sm font-semibold text-slate-950" id={id}>
+    <div className="border-b border-stroke-soft-200 px-5 py-4">
+      <h2 className="text-label-sm font-semibold text-text-strong-950" id={id}>
         {title}
       </h2>
-      <p className="mt-1 text-xs text-slate-500">{description}</p>
+      <p className="mt-0.5 text-paragraph-xs text-text-sub-600">{description}</p>
     </div>
   );
 }
@@ -308,12 +313,12 @@ function DetailLoading({ viewer }: { viewer: Viewer }) {
   return (
     <AppShell viewer={viewer}>
       <div className="space-y-5" aria-busy="true" aria-label="Loading order">
-        <Skeleton className="h-5 w-24" />
-        <Skeleton className="h-24 w-full" />
-        <Skeleton className="h-28 w-full" />
+        <Skeleton className="h-5 w-24 rounded-md" />
+        <Skeleton className="h-24 w-full rounded-2xl" />
+        <Skeleton className="h-28 w-full rounded-2xl" />
         <div className="grid gap-6 xl:grid-cols-[1.35fr_.65fr]">
-          <Skeleton className="h-72 w-full" />
-          <Skeleton className="h-72 w-full" />
+          <Skeleton className="h-72 w-full rounded-2xl" />
+          <Skeleton className="h-72 w-full rounded-2xl" />
         </div>
       </div>
     </AppShell>

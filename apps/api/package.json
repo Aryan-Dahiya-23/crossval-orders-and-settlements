@@ -14,7 +14,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src tests",
     "test": "pnpm --filter @crossval/contracts build && vitest run --exclude 'tests/**/*.integration.test.ts'",
-    "test:integration": "pnpm --filter @crossval/contracts build && vitest run --no-file-parallelism tests/db/migrations.integration.test.ts tests/auth/auth.integration.test.ts tests/orders/orders.integration.test.ts tests/orders/payments.integration.test.ts",
+    "test:integration": "pnpm --filter @crossval/contracts build && vitest run --no-file-parallelism integration.test.ts",
     "test:watch": "vitest"
   },
   "dependencies": {

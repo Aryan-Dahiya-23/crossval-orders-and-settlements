@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 import { useSignup } from "../../features/auth/queries";
 import { ApiError } from "../../lib/api-client";
 import { Alert } from "../ui/alert";
-import { Button } from "../ui/button";
+import * as Button from "../ui/button";
 import { Field, Input } from "../ui/input";
 
 export function SignupForm() {
@@ -55,6 +55,7 @@ export function SignupForm() {
           type="email"
           autoComplete="email"
           placeholder="you@company.com"
+          hasError={errors.email !== undefined}
           aria-invalid={errors.email !== undefined}
           {...register("email")}
         />
@@ -62,7 +63,7 @@ export function SignupForm() {
       <Field
         label="Password"
         htmlFor="password"
-        hint="Use at least 12 characters."
+        hint="Use at least 6 characters."
         error={errors.password?.message}
       >
         <Input
@@ -70,18 +71,19 @@ export function SignupForm() {
           type="password"
           autoComplete="new-password"
           placeholder="Create a secure password"
+          hasError={errors.password !== undefined}
           aria-invalid={errors.password !== undefined}
           {...register("password")}
         />
       </Field>
-      {errors.root?.message ? <Alert>{errors.root.message}</Alert> : null}
-      <Button className="mt-1 w-full" disabled={signup.isPending} type="submit">
+      {errors.root?.message ? <Alert tone="danger">{errors.root.message}</Alert> : null}
+      <Button.Root className="mt-1 w-full" variant="primary" size="medium" disabled={signup.isPending} type="submit">
         {signup.isPending ? "Creating account…" : "Create account"}
-      </Button>
-      <p className="text-center text-sm text-slate-500">
+      </Button.Root>
+      <p className="text-center text-paragraph-sm text-text-sub-600">
         Already have an account?{" "}
         <Link
-          className="font-semibold text-slate-950 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-slate-950"
+          className="font-semibold text-text-strong-950 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stroke-strong-950 rounded-sm"
           href="/login"
         >
           Sign in

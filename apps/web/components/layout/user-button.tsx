@@ -64,7 +64,7 @@ export function UserButton({
       <Dropdown.Trigger
         className={cn(
           'group flex w-full items-center rounded-10 bg-bg-white-0 text-left transition duration-150 ease-out cursor-pointer outline-none',
-          'hover:bg-bg-weak-50 focus-visible:ring-2 focus-visible:ring-stroke-strong-950',
+          'hover:bg-bg-weak-50 focus-visible:shadow-button-important-focus',
           collapsed
             ? 'size-10 justify-center p-0'
             : 'gap-3 p-2 ring-1 ring-inset ring-stroke-soft-200 shadow-regular-xs hover:shadow-none',
@@ -73,12 +73,12 @@ export function UserButton({
         aria-label="User account menu"
       >
         <span className="grid size-8 shrink-0 place-items-center rounded-full bg-primary-lighter text-label-xs font-semibold text-primary-base ring-1 ring-inset ring-primary-base/20">
-          {initial || <RiUser3Line className="size-3.5" />}
+          {initial || <RiUser3Line className="size-4" />}
         </span>
 
         {!collapsed && (
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-label-sm font-medium text-text-strong-950">
+            <span className="block truncate text-label-sm font-semibold text-text-strong-950">
               {user.email.split('@')[0]}
             </span>
             <span className="block truncate text-paragraph-xs text-text-sub-600">
@@ -92,10 +92,10 @@ export function UserButton({
         side={collapsed ? 'right' : 'top'}
         sideOffset={12}
         align={collapsed ? 'start' : 'center'}
-        className="w-56"
+        className="w-56 mb-2"
       >
         <div className="px-2.5 py-1.5">
-          <p className="text-subheading-2xs uppercase text-text-soft-400 font-medium tracking-wider">
+          <p className="text-subheading-2xs uppercase text-text-soft-400 font-medium">
             Signed in as
           </p>
           <p className="truncate text-label-sm font-medium text-text-strong-950">
@@ -103,15 +103,16 @@ export function UserButton({
           </p>
         </div>
 
-        <Divider.Root variant="line-spacing" />
+        <Divider.Root className="my-1" />
 
         <Dropdown.Item
-          className="text-error-base hover:bg-error-lighter/50 hover:text-error-dark focus:bg-error-lighter/50 focus:text-error-dark"
+          className="text-error-base hover:bg-error-lighter/50 hover:text-error-dark focus:bg-error-lighter/50 focus:text-error-dark cursor-pointer"
           onSelect={() => void handleLogout()}
+          onClick={() => void handleLogout()}
           disabled={logoutMutation.isPending}
         >
-          <Dropdown.ItemIcon as={RiLogoutBoxRLine} />
-          <span>{logoutMutation.isPending ? 'Logging out…' : 'Sign out'}</span>
+          <Dropdown.ItemIcon as={RiLogoutBoxRLine} className="text-error-base" />
+          <span>{logoutMutation.isPending ? 'Signing out…' : 'Sign out'}</span>
         </Dropdown.Item>
       </Dropdown.Content>
     </Dropdown.Root>

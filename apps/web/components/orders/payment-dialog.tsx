@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { OrderDetail } from "@crossval/contracts";
+import { RiMoneyDollarCircleLine } from "@remixicon/react";
 import { useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
@@ -9,11 +10,11 @@ import { z } from "zod";
 import {
   centsToDecimalString,
   decimalToCents,
-} from "../../features/orders/form-schema";
-import { useRecordPayment } from "../../features/orders/queries";
-import { ApiError } from "../../lib/api-client";
-import { cn } from "../../lib/cn";
-import { formatUsd } from "../../lib/format";
+} from "@/features/orders/form-schema";
+import { useRecordPayment } from "@/features/orders/queries";
+import { ApiError } from "@/lib/api-client";
+import { formatUsd } from "@/lib/format";
+import { cn } from "@/utils/cn";
 import { Alert } from "../ui/alert";
 import * as Button from "../ui/button";
 import { Field, Input, Textarea } from "../ui/input";
@@ -163,14 +164,13 @@ export function PaymentDialog({
       }}
     >
       <Modal.Content className="max-w-[480px]">
-        <Modal.Header>
-          <Modal.Title>Record payment</Modal.Title>
-          <Modal.Description>
-            Apply a settlement to {order.displayId}. The write is protected by an idempotency key.
-          </Modal.Description>
-        </Modal.Header>
+        <Modal.Header
+          icon={RiMoneyDollarCircleLine}
+          title="Record payment"
+          description={`Apply a settlement to ${order.displayId}. The write is protected by an idempotency key.`}
+        />
 
-        <Modal.Body className="space-y-4 p-5">
+        <Modal.Body className="space-y-4">
           {/* Dynamic Settlement Preview Card */}
           <div className="overflow-hidden rounded-xl bg-bg-weak-50 ring-1 ring-inset ring-stroke-soft-200">
             <div className="flex items-center justify-between border-b border-stroke-soft-200 px-4 py-2.5 text-paragraph-xs text-text-sub-600">
@@ -248,13 +248,16 @@ export function PaymentDialog({
               hint={order.balanceDueCents > 0 ? `Maximum ${formatUsd(order.balanceDueCents)}` : undefined}
             >
               {order.balanceDueCents > 0 ? (
-                <div className="flex justify-end -mt-1 mb-1">
+                <div className="-mt-1 mb-1.5 flex justify-end">
                   <button
-                    className="text-subheading-2xs font-semibold text-text-sub-600 underline-offset-2 hover:text-text-strong-950 hover:underline focus-visible:outline-none"
+                    className="inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-paragraph-xs font-medium text-text-sub-600 transition-colors hover:bg-bg-weak-50 hover:text-text-strong-950 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
                     type="button"
                     onClick={handleUseRemaining}
                   >
-                    Use remaining balance ({formatUsd(order.balanceDueCents)})
+                    <span>Use remaining balance</span>
+                    <span className="font-semibold tabular-nums text-text-strong-950">
+                      ({formatUsd(order.balanceDueCents)})
+                    </span>
                   </button>
                 </div>
               ) : null}
@@ -262,7 +265,7 @@ export function PaymentDialog({
                 id="payment-amount"
                 prefix="$"
                 placeholder="0.00"
-                className="tabular-nums font-medium"
+                className="font-medium tabular-nums"
                 inputMode="decimal"
                 autoComplete="off"
                 hasError={form.formState.errors.amount !== undefined}
@@ -313,7 +316,6 @@ export function PaymentDialog({
             mode="stroke"
             size="medium"
             type="button"
-            className="w-full"
             disabled={mutation.isPending}
             onClick={handleClose}
           >
@@ -321,10 +323,10 @@ export function PaymentDialog({
           </Button.Root>
           <Button.Root
             variant="primary"
+            mode="filled"
             size="medium"
             type="submit"
             form="payment-form"
-            className="w-full"
             disabled={
               mutation.isPending || isOverpaid || order.balanceDueCents <= 0
             }
@@ -340,3 +342,4 @@ export function PaymentDialog({
     </Modal.Root>
   );
 }
+

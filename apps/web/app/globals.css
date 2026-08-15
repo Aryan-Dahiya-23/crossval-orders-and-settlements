@@ -114,6 +114,8 @@
     --primary-dark: var(--blue-900);
     --primary-darker: var(--blue-900);
     --primary-base: var(--neutral-950);
+    --primary-lighter: 222 100% 96.08%;
+    --primary-alpha: 227.93 100% 63.92% / 16%;
     --primary-alpha-24: var(--neutral-alpha-24);
     --primary-alpha-16: var(--neutral-alpha-16);
     --primary-alpha-10: var(--neutral-alpha-10);
@@ -194,6 +196,9 @@
     --faded-light: var(--neutral-alpha-24);
     --faded-lighter: var(--neutral-alpha-16);
 
+    --primary-lighter: var(--blue-alpha-16);
+    --primary-alpha: 227.93 100% 63.92% / 16%;
+
     --information-dark: var(--blue-400);
     --information-base: var(--blue-500);
     --information-light: var(--blue-alpha-24);
@@ -272,6 +277,12 @@ button:not(:disabled),
 ::selection {
   background: hsl(var(--neutral-200));
   color: hsl(var(--neutral-950));
+}
+
+@layer utilities {
+  .tabular-nums {
+    font-variant-numeric: tabular-nums;
+  }
 }
 
 .remixicon path {

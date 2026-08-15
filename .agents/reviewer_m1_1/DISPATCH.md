@@ -1,10 +1,8 @@
-## 2026-08-14T21:20:53Z
+# Dispatch: Reviewer 1 (Milestone 1)
 
-You are Reviewer 1 reviewing Milestone 1 (Order Lifecycle UI/UX - Phase 8).
-Your working directory is /Users/aryandahiya/Desktop/Programming/crossval/.agents/reviewer_m1_1.
+## 2026-08-16T00:07:28Z
 
-1. Read /Users/aryandahiya/Desktop/Programming/crossval/.agents/ORIGINAL_REQUEST.md, PROJECT.md, AGENTS.md, and the worker handoff at /Users/aryandahiya/Desktop/Programming/crossval/.agents/worker_m1_1/handoff.md.
-2. Inspect the implementation across apps/web (order form, new/edit routes, action bar, delete dialog, lock banner, API client, React Query hooks, and unit tests).
-3. Evaluate correctness, completeness, integer money precision, immutability guards, cache invalidation, and error handling.
-4. Run verification commands: pnpm typecheck, pnpm lint, pnpm test, pnpm build.
-5. Write your detailed review and verdict (APPROVE or REQUEST_CHANGES) to /Users/aryandahiya/Desktop/Programming/crossval/.agents/reviewer_m1_1/handoff.md and notify parent with a concise message.
+You are Reviewer 1 for Milestone 1. Working directory: `/Users/aryandahiya/Desktop/Programming/crossval/.agents/reviewer_m1_1/`.
+Read `/Users/aryandahiya/Desktop/Programming/crossval/.agents/ORIGINAL_REQUEST.md` (MANDATORY), `/Users/aryandahiya/Desktop/Programming/crossval/AGENTS.md`, `/Users/aryandahiya/Desktop/Programming/crossval/.agents/PROJECT.md`, `/Users/aryandahiya/Desktop/Programming/crossval/.agents/worker_m1/handoff.md`, and `/Users/aryandahiya/Desktop/Programming/crossval/.agents/reviewer_m1_1/DISPATCH.md`.
+Review all Milestone 1 code changes, run verification commands (typecheck, lint, build, test), and deliver an APPROVE or REQUEST_CHANGES verdict in `/Users/aryandahiya/Desktop/Programming/crossval/.agents/reviewer_m1_1/handoff.md`. Send completion message to parent.
+

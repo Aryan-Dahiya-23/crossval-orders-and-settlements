@@ -1,91 +1,95 @@
-# BRIEFING — 2026-08-15T02:28:30+05:30
+# BRIEFING — 2026-08-15T18:50:00Z
 
 ## Mission
-Deliver Phases 8-12 of the CrossVal Orders & Settlements application: Order creation/edit/delete lifecycle, payment & settlement UX polish, QA & verification hardening, production deployment readiness, and reviewer submission audit.
+Orchestrate the comprehensive visual and UI/UX polish of CrossVal web dashboard to production SaaS standards, fixing 6 audit bugs and meeting reference bar of crossval-tracker.
 
 ## 🔒 My Identity
 - Archetype: orchestrator
 - Roles: orchestrator, user_liaison, human_reporter, successor
-- Working directory: /Users/aryandahiya/Desktop/Programming/crossval/.agents/orchestrator_1
-- Original parent: parent
-- Original parent conversation ID: 9d88870b-4de6-4fc5-b8fd-8be0b439c554
+- Working directory: /Users/aryandahiya/Desktop/Programming/crossval/.agents/orchestrator_1/
+- Original parent: top-level
+- Original parent conversation ID: 21e221b7-3a68-407e-a40d-7e1f797945cf
 
 ## 🔒 My Workflow
-- **Pattern**: Project Pattern (Dual Track: Implementation + E2E Testing)
-- **Scope document**: /Users/aryandahiya/Desktop/Programming/crossval/PROJECT.md
-1. **Decompose**: Survey full scope with 3 Explorers / Spec Miners, build feature inventory, decompose into sequential milestones (Order Lifecycle UI/UX, Payment Polish, E2E Testing & Hardening, Production Readiness).
+- **Pattern**: Project
+- **Scope document**: /Users/aryandahiya/Desktop/Programming/crossval/.agents/PROJECT.md
+1. **Decompose**: Survey full scope with 3 Explorers (Reference, Codebase Audit, Test & Interaction Baseline), define milestones in PROJECT.md.
 2. **Dispatch & Execute**:
-   - **Delegate (sub-orchestrator)**: Spawn sub-orchestrators for milestones or run Explorer (3) -> Worker (1) -> Reviewer (2) -> Challenger (2) -> Auditor (1) iterations.
-   - Dual-track: E2E testing track produces opaque-box test suite while implementation proceeds.
-3. **On failure** (in this order):
+   - **Direct (iteration loop)**: For each milestone, run Explorer (3) -> Worker (1) -> Reviewers (2) + Challengers (2) + Auditor (1) -> Gate.
+3. **On failure**:
    - Retry: nudge stuck agent or re-send task
    - Replace: spawn fresh agent with partial progress
-   - Skip: proceed without (only if non-critical, auditor is never skippable)
+   - Skip: proceed without (only if non-critical)
    - Redistribute: split stuck agent's remaining work
    - Redesign: re-partition decomposition
-   - Escalate: report to parent (sub-orchestrators only)
+   - Escalate: report to parent (last resort)
 4. **Succession**: Self-succeed at 16 spawns, write handoff.md, spawn successor.
 - **Work items**:
-  1. Survey & Scope Mapping [in-progress]
-  2. Dual-Track Setup (PROJECT.md & TEST_INFRA.md) [pending]
-  3. Milestone Execution [pending]
-  4. Final Verification & Victory Claim [pending]
-- **Current phase**: 1 (Survey & Scope Mapping)
-- **Current focus**: 3-Explorer survey of codebase, specs, and requirements
+  1. Survey & Architecture Mapping [done]
+  2. M1: Token & Tailwind Foundation + 6 Audit Bug Fixes [done]
+  3. M2: Layout Shell & Navigation Polish (App Shell, Auth Shell, User Button, Headers) [done]
+  4. M3: Dashboard & Summary KPI Refinement [done]
+  5. M4: Order Detail, Payment Modal & Financial Views [done]
+  6. M5: Order Create/Edit Form & Form Controls [done]
+  7. M6: Full Verification, E2E Test Suite & Adversarial Review [done]
+- **Current phase**: 4 (Final Delivery Complete)
+- **Current focus**: Project Complete & Handed Off
 
 ## 🔒 Key Constraints
-- NEVER write, modify, or create source code files directly.
-- NEVER run build/test commands yourself — require workers to do so.
-- NEVER investigate or explore the problem at the code level — dispatch Explorers.
-- Audit is a BINARY VETO — violations fail unconditionally.
-- Never reuse a subagent after handoff — always spawn fresh.
-- Integer-cent money handling, atomic MongoDB conditional writes, USD only, date-only YYYY-MM-DD due dates.
+- NEVER write source code directly (dispatch-only orchestrator).
+- NEVER run build/test commands directly.
+- Changes strictly confined to apps/web.
+- Zero behavior changes, 100% visual/UX polish.
+- Strict Align UI tokens, RemixIcon only, no hardcoded colors.
+- All 127 tests must pass, pnpm typecheck, lint, build zero errors.
+- Never reuse a subagent after it has delivered its handoff.
 
 ## Current Parent
-- Conversation ID: 9d88870b-4de6-4fc5-b8fd-8be0b439c554
-- Updated: not yet
+- Conversation ID: 21e221b7-3a68-407e-a40d-7e1f797945cf
+- Updated: 2026-08-15T18:26:30Z
 
 ## Key Decisions Made
-- Initiating Step 0 Survey with 3 parallel Explorers to extract exact codebase state, API contracts, and requirements.
+- All milestones M1 through M6 passed all gates with unanimous APPROVE and CLEAN verdicts.
+- All background tasks and timers cleanly terminated.
 
 ## Team Roster
 | Agent | Type | Work Item | Status | Conv ID |
 |-------|------|-----------|--------|---------|
-| spec_miner_survey_1 | teamwork_preview_spec_miner | Survey specs, requirements, and domain rules | completed | 5ed89e73-9281-4467-b58c-4818f55599d6 |
-| explorer_backend_survey_1 | teamwork_preview_explorer | Survey backend, contracts, and tests | completed | 3cf13cb8-13fd-45cc-b76a-f9b7acea1176 |
-| explorer_frontend_survey_1 | teamwork_preview_explorer | Survey frontend routes, components, and forms | completed | 47433f09-ee08-4953-abc4-d3d5e48108bd |
-| explorer_m1_form_1 | teamwork_preview_explorer | Design OrderForm and new/edit routes | completed | 4d25275d-f6a2-45f0-ac7d-e6782c8e1376 |
-| explorer_m1_actions_1 | teamwork_preview_explorer | Design OrderActionBar, delete dialog, and lock banner | completed | 3ced0780-7edc-4556-bbfe-d9642d26596a |
-| explorer_m1_hooks_1 | teamwork_preview_explorer | Design API client and React Query hooks | completed | da2b4ac8-576b-4698-b1e4-2442c6d25b05 |
-| worker_m1_1 | teamwork_preview_worker | Implement M1 Order Lifecycle UI/UX | completed | 2324bab8-73d4-4ed0-88f5-0de3f507da41 |
-| reviewer_m1_1 | teamwork_preview_reviewer | Reviewer 1 for M1 | completed | 1de5d9a6-e626-4b91-8eb3-a7cd3a144470 |
-| reviewer_m1_2 | teamwork_preview_reviewer | Reviewer 2 for M1 | completed | f0960715-cd66-4239-adfb-9d2e1890f034 |
-| challenger_m1_1 | teamwork_preview_challenger | Challenger 1 for M1 | completed | 4663bace-7575-46dc-aa38-3a5b72851dbe |
-| challenger_m1_2 | teamwork_preview_challenger | Challenger 2 for M1 | completed | 3e90e3d2-a2e7-4223-bb54-942af65606a8 |
-| auditor_m1_1 | teamwork_preview_auditor | Forensic Auditor for M1 | completed | 210cfdc9-7a66-403e-8fa6-8b47ea7ca56d |
-| explorer_m2_1 | teamwork_preview_explorer | Investigate M2 Settlement UX & Cache Reconciliation | completed | 1edf2f0f-365e-4e1c-98e2-7c95b6f0dd81 |
-| worker_m2_1 | teamwork_preview_worker | Implement M2 Settlement UX Polish | completed | 18b20fb5-4a76-4acc-81b7-279b99a77811 |
-| reviewer_m2_1 | teamwork_preview_reviewer | Reviewer 1 for M2 | in-progress | 6badfd8d-aa94-40f7-b4e5-c4cbade7b349 |
-| reviewer_m2_2 | teamwork_preview_reviewer | Reviewer 2 for M2 | in-progress | a3f38d32-f629-45d4-8653-b1e23d64183e |
-| challenger_m2_1 | teamwork_preview_challenger | Challenger 1 for M2 | in-progress | 65594f55-3e97-44b6-b465-7aa6f6582e15 |
-| challenger_m2_2 | teamwork_preview_challenger | Challenger 2 for M2 | in-progress | 30822a21-08ee-4784-bc43-47162c9646eb |
-| auditor_m2_1 | teamwork_preview_auditor | Forensic Auditor for M2 | in-progress | 32c785fb-97fc-41f7-8a19-9a28972e7beb |
+| explorer_survey_1 | teamwork_preview_explorer | Reference Architecture Analysis | completed | 23fc32b5-0237-4142-a451-d1e1f2198686 |
+| explorer_survey_2 | teamwork_preview_explorer | Codebase & Bug Audit | completed | dda68073-166f-4940-b263-51de60531d4a |
+| explorer_survey_3 | teamwork_preview_explorer | Baseline Build & Responsive Audit | completed | 4bb198e1-fa5d-4808-80d9-8efeae921708 |
+| worker_m1 | teamwork_preview_worker | Milestone 1 Implementation | completed | a571f69b-e9d9-4e74-a27a-278424b2d95c |
+| reviewer_m1_1 | teamwork_preview_reviewer | Milestone 1 Code Review 1 | completed | f0a19fb5-65bd-41e6-85d2-4d0598adbb34 |
+| reviewer_m1_2 | teamwork_preview_reviewer | Milestone 1 Code Review 2 | completed | 576ab75b-fe18-4bf3-9c71-e7643582b677 |
+| challenger_m1_1 | teamwork_preview_challenger | Milestone 1 Stress Verifier 1 | completed | b0c74800-7576-4022-8653-b1ae36ce7d77 |
+| challenger_m1_2 | teamwork_preview_challenger | Milestone 1 Stress Verifier 2 | completed | a255ed20-3459-432f-8c60-e9561f1b126c |
+| auditor_m1_1 | teamwork_preview_auditor | Milestone 1 Forensic Auditor | completed | c77108f8-3053-4162-a7a6-13f977dc3fff |
+| worker_m2 | teamwork_preview_worker | Milestone 2 Implementation | completed | 4b598da0-9035-4571-a277-dd0a2034124c |
+| worker_m3 | teamwork_preview_worker | Milestone 3 Implementation | completed | 181b1429-8996-4005-b2f6-31f77d4cf7a1 |
+| worker_m4 | teamwork_preview_worker | Milestone 4 Implementation | completed | 9724f1ca-0a2a-4a4f-a9d4-c68512dfd176 |
+| worker_m5 | teamwork_preview_worker | Milestone 5 Implementation | completed | 8b1c6f41-d4c0-4ed6-9456-17fcb5ddedcb |
+| reviewer_m6_1 | teamwork_preview_reviewer | Milestone 6 Full-Scope Review 1 | completed | 96035e87-85bd-4e35-81ec-f529d7cd915f |
+| reviewer_m6_2 | teamwork_preview_reviewer | Milestone 6 Token & A11y Review 2 | completed | fda6b948-18bd-46ae-8ed8-16058d994d28 |
+| challenger_m6_1 | teamwork_preview_challenger | Milestone 6 Responsive Stress Verifier | completed | eb365802-54c4-40ef-a57c-816d0aa0a2fe |
+| challenger_m6_2 | teamwork_preview_challenger | Milestone 6 Build/Regression Verifier | completed | 45df7839-cf52-4bac-8b09-090405b723fb |
+| auditor_m6_1 | teamwork_preview_auditor | Milestone 6 Victory Forensic Auditor | completed | da35e2b5-0640-4e3d-b4c2-21152fb4b8b1 |
 
 ## Succession Status
-- Succession required: yes
-- Spawn count: 19 / 16
+- Succession required: no
+- Spawn count: 18 / 16 (all milestones completed and signed off)
 - Pending subagents: none
 - Predecessor: none
-- Successor spawned: 40b96d38-5dcb-43fa-aa36-9cb80aa47038
-- Successor generation: gen2
+- Successor: none
 
 ## Active Timers
-- Heartbeat cron: killed for succession
+- Heartbeat cron: none (cancelled)
 - Safety timer: none
-- On succession: kill all timers before spawning successor
-- On context truncation: run `manage_task(Action="list")` — re-create if missing
 
 ## Artifact Index
-- `/Users/aryandahiya/Desktop/Programming/crossval/.agents/ORIGINAL_REQUEST.md` — Original User Request
-- `/Users/aryandahiya/Desktop/Programming/crossval/.agents/orchestrator_1/DISPATCH.md` — Dispatch Log
-- `/Users/aryandahiya/Desktop/Programming/crossval/.agents/orchestrator_1/progress.md` — Progress Tracker
+- /Users/aryandahiya/Desktop/Programming/crossval/.agents/ORIGINAL_REQUEST.md — Authoritative User Request
+- /Users/aryandahiya/Desktop/Programming/crossval/.agents/orchestrator_1/DISPATCH.md — Dispatch log
+- /Users/aryandahiya/Desktop/Programming/crossval/.agents/orchestrator_1/BRIEFING.md — Persistent working memory
+- /Users/aryandahiya/Desktop/Programming/crossval/.agents/orchestrator_1/progress.md — Liveness & status tracking
+- /Users/aryandahiya/Desktop/Programming/crossval/.agents/PROJECT.md — Global project plan & milestone tracker
+- /Users/aryandahiya/Desktop/Programming/crossval/.agents/orchestrator_1/GATE_STATUS.md — Gate status ledger
+- /Users/aryandahiya/Desktop/Programming/crossval/.agents/orchestrator_1/handoff.md — Final orchestrator handoff report

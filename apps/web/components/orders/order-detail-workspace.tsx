@@ -3,14 +3,16 @@
 import type { Viewer } from "@crossval/contracts";
 import {
   RiArrowLeftLine,
+  RiBillLine,
   RiMoneyDollarCircleLine,
+  RiWallet3Line,
 } from "@remixicon/react";
 import Link from "next/link";
 import { useState } from "react";
 
-import { useOrderDetail } from "../../features/orders/queries";
-import { ApiError } from "../../lib/api-client";
-import { formatDateOnly, formatInstant, formatUsd } from "../../lib/format";
+import { useOrderDetail } from "@/features/orders/queries";
+import { ApiError } from "@/lib/api-client";
+import { formatDateOnly, formatInstant, formatUsd } from "@/lib/format";
 import { ProtectedRoute } from "../auth/auth-boundary";
 import { AppShell } from "../layout/app-shell";
 import { Alert } from "../ui/alert";
@@ -57,10 +59,10 @@ function OrderDetailContent({
           role="alert"
         >
           <div>
-            <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-error-lighter/50 text-error-base ring-1 ring-inset ring-error-light">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-error-lighter text-error-base ring-1 ring-inset ring-error-base/20">
               <RiMoneyDollarCircleLine className="size-6" />
             </span>
-            <p className="mt-4 text-subheading-xs font-semibold uppercase tracking-wider text-text-soft-400">
+            <p className="mt-4 text-subheading-xs uppercase font-medium text-text-soft-400">
               {notFound ? "Not found" : "Connection problem"}
             </p>
             <h1 className="mt-2 text-title-h4 font-semibold text-text-strong-950">
@@ -86,15 +88,17 @@ function OrderDetailContent({
 
   return (
     <AppShell viewer={viewer}>
-      <Link
-        className="inline-flex items-center gap-1.5 rounded-lg text-paragraph-sm font-medium text-text-sub-600 outline-none transition hover:text-text-strong-950 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
-        href="/orders"
-      >
-        <RiArrowLeftLine className="size-4" />
-        All orders
-      </Link>
+      <div className="mb-5">
+        <Link
+          className="inline-flex items-center gap-1.5 rounded-lg text-paragraph-sm font-medium text-text-sub-600 outline-none transition hover:text-text-strong-950 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
+          href="/orders"
+        >
+          <RiArrowLeftLine className="size-4" />
+          All orders
+        </Link>
+      </div>
 
-      <header className="mt-5 flex flex-col gap-5 border-b border-stroke-soft-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
+      <header className="flex flex-col gap-5 border-b border-stroke-soft-200 pb-6 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <div className="mb-2 flex flex-wrap items-center gap-2.5">
             <span className="font-mono text-paragraph-xs font-medium text-text-soft-400">
@@ -105,7 +109,7 @@ function OrderDetailContent({
           <h1 className="text-title-h5 font-semibold text-text-strong-950 sm:text-title-h4">
             {detail.customerName}
           </h1>
-          <p className="mt-2 text-paragraph-sm text-text-sub-600">
+          <p className="mt-1 text-paragraph-sm text-text-sub-600">
             Payment due {formatDateOnly(detail.dueDate)}
           </p>
         </div>
@@ -132,26 +136,37 @@ function OrderDetailContent({
         </div>
       ) : null}
 
+      {/* Financial Scorecards */}
       <section
         className="mt-6 grid overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 sm:grid-cols-3 divide-y sm:divide-y-0 sm:divide-x divide-stroke-soft-200"
         aria-label="Order financial summary"
       >
         <FinancialMetric
+          icon={RiBillLine}
+          iconTone="primary"
           label="Order total"
           value={formatUsd(detail.totalAmountCents)}
+          subtitle="Gross order value"
         />
         <FinancialMetric
+          icon={RiWallet3Line}
+          iconTone="success"
           label="Amount paid"
           value={formatUsd(detail.paidAmountCents)}
+          subtitle={`${detail.payments.length} recorded settlement${detail.payments.length === 1 ? "" : "s"}`}
         />
         <FinancialMetric
+          icon={RiMoneyDollarCircleLine}
+          iconTone={detail.balanceDueCents === 0 ? "success" : "warning"}
           label="Balance due"
           value={formatUsd(detail.balanceDueCents)}
+          subtitle={detail.balanceDueCents === 0 ? "Settled in full" : "Outstanding balance"}
           emphasis
         />
       </section>
 
       <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,1.35fr)_minmax(320px,.65fr)]">
+        {/* Line Items Table */}
         <section
           className="overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200"
           aria-labelledby="items-title"
@@ -161,29 +176,29 @@ function OrderDetailContent({
             description={`${detail.items.length} item${detail.items.length === 1 ? "" : "s"} on this order`}
             id="items-title"
           />
-          <div className="p-4 overflow-x-auto">
+          <div className="overflow-x-auto">
             <Table.Root>
               <Table.Header>
-                <tr>
-                  <Table.Head>Description</Table.Head>
-                  <Table.Head className="text-center">Qty</Table.Head>
-                  <Table.Head className="text-right">Unit price</Table.Head>
-                  <Table.Head className="text-right">Line total</Table.Head>
-                </tr>
+                <Table.Row>
+                  <Table.Head className="px-5 py-3">Description</Table.Head>
+                  <Table.Head className="px-3.5 py-3 text-center w-24">Qty</Table.Head>
+                  <Table.Head className="px-3.5 py-3 text-right w-32">Unit price</Table.Head>
+                  <Table.Head className="px-5 py-3 text-right w-36">Line total</Table.Head>
+                </Table.Row>
               </Table.Header>
-              <Table.Body spacing={6}>
+              <Table.Body>
                 {detail.items.map((item) => (
-                  <Table.Row key={item.id}>
-                    <Table.Cell className="font-medium text-text-strong-950">
+                  <Table.Row key={item.id} className="border-b border-stroke-soft-200/60 last:border-0 hover:bg-bg-weak-50/50">
+                    <Table.Cell className="px-5 py-3 font-medium text-text-strong-950">
                       {item.description}
                     </Table.Cell>
-                    <Table.Cell className="text-center tabular-nums text-text-sub-600">
+                    <Table.Cell className="px-3.5 py-3 text-center tabular-nums text-text-sub-600">
                       {item.quantity}
                     </Table.Cell>
-                    <Table.Cell className="text-right tabular-nums text-text-sub-600">
+                    <Table.Cell className="px-3.5 py-3 text-right tabular-nums text-text-sub-600">
                       {formatUsd(item.unitPriceCents)}
                     </Table.Cell>
-                    <Table.Cell className="text-right font-semibold tabular-nums text-text-strong-950">
+                    <Table.Cell className="px-5 py-3 text-right font-semibold tabular-nums text-text-strong-950">
                       {formatUsd(item.lineTotalCents)}
                     </Table.Cell>
                   </Table.Row>
@@ -191,8 +206,18 @@ function OrderDetailContent({
               </Table.Body>
             </Table.Root>
           </div>
+
+          <div className="flex items-center justify-between border-t border-stroke-soft-200 bg-bg-weak-50/50 px-5 py-3.5">
+            <span className="text-paragraph-xs text-text-sub-600">
+              Total ({detail.items.length} item{detail.items.length === 1 ? "" : "s"})
+            </span>
+            <span className="text-paragraph-sm font-semibold tabular-nums text-text-strong-950">
+              {formatUsd(detail.totalAmountCents)}
+            </span>
+          </div>
         </section>
 
+        {/* Payment History Ledger */}
         <section
           className="overflow-hidden rounded-2xl bg-bg-white-0 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200"
           aria-labelledby="payments-title"
@@ -204,7 +229,7 @@ function OrderDetailContent({
           />
           {detail.payments.length === 0 ? (
             <div className="p-8 text-center">
-              <span className="mx-auto flex size-10 items-center justify-center rounded-full bg-bg-weak-50 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200">
+              <span className="mx-auto flex size-10 items-center justify-center rounded-full bg-bg-weak-50 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200 shadow-regular-xs">
                 <RiMoneyDollarCircleLine className="size-5" />
               </span>
               <p className="mt-3 text-paragraph-sm font-medium text-text-strong-950">
@@ -217,22 +242,22 @@ function OrderDetailContent({
           ) : (
             <ol className="divide-y divide-stroke-soft-200">
               {detail.payments.map((payment) => (
-                <li className="p-5" key={payment.id}>
-                  <div className="flex items-baseline justify-between gap-3">
+                <li className="p-5 transition-colors hover:bg-bg-weak-50/30" key={payment.id}>
+                  <div className="flex items-center justify-between gap-3">
                     <strong className="text-paragraph-sm font-semibold tabular-nums text-text-strong-950">
                       {formatUsd(payment.amountCents)}
                     </strong>
-                    <span className="text-paragraph-xs text-text-sub-600">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-success-lighter px-2 py-0.5 text-label-xs font-medium text-success-dark ring-1 ring-inset ring-success-base/20">
                       {formatDateOnly(payment.paymentDate)}
                     </span>
                   </div>
                   {payment.note ? (
-                    <p className="mt-2 text-paragraph-sm leading-5 text-text-sub-600">
+                    <p className="mt-2 rounded-lg bg-bg-weak-50 p-2.5 text-paragraph-xs leading-5 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200/50">
                       {payment.note}
                     </p>
                   ) : null}
                   <time
-                    className="mt-2 block text-subheading-2xs text-text-soft-400"
+                    className="mt-2.5 block text-subheading-2xs text-text-soft-400"
                     dateTime={payment.createdAt}
                   >
                     Recorded {formatInstant(payment.createdAt)}
@@ -268,24 +293,48 @@ function OrderDetailContent({
 function FinancialMetric({
   label,
   value,
+  subtitle,
+  icon: Icon,
+  iconTone = "primary",
   emphasis = false,
 }: {
   label: string;
   value: string;
+  subtitle?: string;
+  icon?: typeof RiBillLine;
+  iconTone?: "primary" | "success" | "warning";
   emphasis?: boolean;
 }) {
+  const toneClasses = {
+    primary: "bg-primary-lighter text-primary-base ring-primary-base/20",
+    success: "bg-success-lighter text-success-base ring-success-base/20",
+    warning: "bg-warning-lighter text-warning-base ring-warning-base/20",
+  }[iconTone];
+
   return (
     <div
       className={
         emphasis
-          ? "bg-bg-weak-50/70 p-5"
-          : "p-5"
+          ? "space-y-3 bg-bg-weak-50/60 p-5 sm:p-6"
+          : "space-y-3 p-5 sm:p-6"
       }
     >
-      <span className="text-subheading-xs uppercase font-medium text-text-soft-400">{label}</span>
-      <strong className="mt-2 block text-title-h5 font-semibold tracking-tight tabular-nums text-text-strong-950">
-        {value}
-      </strong>
+      <div className="flex items-center justify-between">
+        <span className="text-subheading-xs uppercase font-medium text-text-soft-400">{label}</span>
+        {Icon ? (
+          <span className={`grid size-8 place-items-center rounded-xl ring-1 ring-inset ${toneClasses}`}>
+            <Icon className="size-4" />
+          </span>
+        ) : null}
+      </div>
+      <div>
+        <strong className="block text-title-h4 font-semibold tracking-tight tabular-nums text-text-strong-950 sm:text-title-h3">
+          {value}
+        </strong>
+        {subtitle ? (
+          <p className="mt-1 text-paragraph-xs text-text-sub-600">{subtitle}</p>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -301,7 +350,7 @@ function PanelHeader({
 }) {
   return (
     <div className="border-b border-stroke-soft-200 px-5 py-4">
-      <h2 className="text-label-sm font-semibold text-text-strong-950" id={id}>
+      <h2 className="text-label-md font-semibold text-text-strong-950" id={id}>
         {title}
       </h2>
       <p className="mt-0.5 text-paragraph-xs text-text-sub-600">{description}</p>
@@ -372,3 +421,4 @@ function DetailLoading({ viewer }: { viewer: Viewer }) {
     </AppShell>
   );
 }
+

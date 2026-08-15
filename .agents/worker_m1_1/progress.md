@@ -1,19 +1,15 @@
-# Progress Log - worker_m1_1
+# Progress Log — worker_m1_1
 
-Last visited: 2026-08-15T02:50:40Z
-Status: Task Complete. All Phase 8 components implemented and verified.
+Last visited: 2026-08-15T12:45:10Z
 
-## Completed Steps
-- [x] Initialized DISPATCH.md, BRIEFING.md, progress.md.
-- [x] Implemented API Client methods (`createOrder`, `replaceOrder`, `deleteOrder`) in `apps/web/features/orders/api.ts` and `apps/web/lib/api/orders.ts`.
-- [x] Implemented React Query hooks (`useCreateOrder`, `useReplaceOrder`, `useDeleteOrder`) in `apps/web/features/orders/queries.ts` and `apps/web/lib/hooks/use-orders.ts`.
-- [x] Implemented Error Normalization and form mapping in `apps/web/features/orders/errors.ts`.
-- [x] Implemented pure form schemas and integer-cent conversion logic in `apps/web/features/orders/form-schema.ts`.
-- [x] Implemented `OrderForm` component with dynamic `useFieldArray` line items, `useWatch` real-time subtotals and totals in `apps/web/components/orders/order-form.tsx`.
-- [x] Implemented Create Order Page & Workspace (`apps/web/app/orders/new/page.tsx`, `apps/web/components/orders/create-order-workspace.tsx`).
-- [x] Implemented Edit Order Page, Workspace & Immutability Guard (`apps/web/app/orders/[orderId]/edit/page.tsx`, `apps/web/components/orders/edit-order-workspace.tsx`, `apps/web/components/orders/order-edit-guard.tsx`).
-- [x] Implemented Action Bar, Delete Dialog, and Lock Banner (`apps/web/components/orders/order-action-bar.tsx`, `apps/web/components/orders/order-delete-dialog.tsx`, `apps/web/components/orders/order-lock-banner.tsx`).
-- [x] Integrated Action Bar, Lock Banner, and Delete Dialog into Order Detail view (`apps/web/components/orders/order-detail-workspace.tsx`).
-- [x] Integrated "New order" button on dashboard header and empty state (`apps/web/components/orders/orders-dashboard.tsx`).
-- [x] Added unit and integration tests across API, error handling, form schemas/conversions, and cache invalidation.
-- [x] Verified `pnpm typecheck`, `pnpm lint`, `pnpm test`, and `pnpm build` all pass with 0 errors.
+- [x] Read DISPATCH.md, ORIGINAL_REQUEST.md, PROJECT.md, and explorer analyses.
+- [x] Initialized BRIEFING.md and progress.md.
+- [ ] Task 1: Update `apps/web/tailwind.config.ts`.
+- [ ] Task 2: Update `apps/web/components/orders/status-badge.tsx`.
+- [ ] Task 3: Update `apps/web/components/ui/button.tsx`.
+- [ ] Task 4: Update `apps/web/components/orders/order-form.tsx`.
+- [ ] Task 5: Typography standardization across `app-shell.tsx`, `user-button.tsx`, `orders-dashboard.tsx`, `edit-order-workspace.tsx`, `order-detail-workspace.tsx`.
+- [ ] Task 6: Subpage back-link and header spacing harmonization across `create-order-workspace.tsx`, `edit-order-workspace.tsx`, `order-detail-workspace.tsx`.
+- [ ] Task 7: Update `apps/web/components/ui/modal.tsx` `ModalTitle`.
+- [ ] Verification: `pnpm typecheck`, `pnpm lint`, `pnpm --filter @crossval/web test`, `pnpm build`, grep checks.
+- [ ] Write `handoff.md` and report to orchestrator.

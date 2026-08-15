@@ -35,6 +35,7 @@ import { Alert } from "../ui/alert";
 import * as Button from "../ui/button";
 import { PageLoadingState, TableLoadingState } from "../ui/loading-state";
 import * as Table from "../ui/table";
+import { cn } from "@/utils/cn";
 import { OrdersPagination } from "./orders-pagination";
 import { OrdersToolbar } from "./orders-toolbar";
 import { SampleDataCTA } from "./sample-data-cta";
@@ -96,7 +97,7 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
         title="Orders & settlements"
         description="Monitor receivables, follow balances, and keep every settlement traceable from one operational view."
         action={
-          <Button.Root variant="primary" size="small" className="rounded-10" asChild>
+          <Button.Root variant="primary" size="small" asChild>
             <Link href="/orders/new">
               <Button.Icon as={RiAddLine} />
               New order
@@ -135,25 +136,28 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
                 label="Total orders"
                 value={String(summary.data.data.totalOrders)}
                 hint="Active portfolio"
+                tone="primary"
               />
               <SummaryCard
                 icon={<RiFundsLine />}
                 label="Outstanding"
                 value={formatUsd(summary.data.data.outstandingAmountCents)}
                 hint="Awaiting settlement"
+                tone="warning"
               />
               <SummaryCard
                 icon={<RiCheckboxCircleLine />}
                 label="Collected"
                 value={formatUsd(summary.data.data.collectedAmountCents)}
                 hint="Payments received"
+                tone="success"
               />
               <SummaryCard
                 icon={<RiBankCardLine />}
                 label="Overdue"
                 value={formatUsd(summary.data.data.overdueAmountCents)}
                 hint="Requires attention"
-                danger={summary.data.data.overdueAmountCents > 0}
+                tone={summary.data.data.overdueAmountCents > 0 ? "error" : "neutral"}
               />
             </section>
           ) : null}
@@ -168,7 +172,7 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
                 <div>
                   <h2
                     id="orders-heading"
-                    className="text-label-sm font-semibold text-text-strong-950"
+                    className="text-label-md font-semibold text-text-strong-950"
                   >
                     Orders
                   </h2>
@@ -182,7 +186,6 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
                     mode="stroke"
                     size="small"
                     type="button"
-                    className="rounded-10"
                     onClick={() => void orders.refetch()}
                     disabled={orders.isFetching}
                     aria-label="Refresh orders"
@@ -304,23 +307,23 @@ export function OrdersDashboard({ viewer }: { viewer: Viewer }) {
 function OrderRows({ orders }: { orders: OrderListItem[] }) {
   return (
     <>
-      <div className="hidden md:block p-4">
+      <div className="hidden md:block">
         <Table.Root>
           <Table.Header>
-            <tr>
-              <Table.Head>Order</Table.Head>
+            <Table.Row>
+              <Table.Head className="pl-5">Order</Table.Head>
               <Table.Head>Status</Table.Head>
               <Table.Head>Due date</Table.Head>
               <Table.Head className="text-right">Total</Table.Head>
               <Table.Head className="text-right">Paid</Table.Head>
               <Table.Head className="text-right">Balance</Table.Head>
-              <Table.Head className="w-12 text-center" aria-label="Open order" />
-            </tr>
+              <Table.Head className="w-14 pr-5 text-right" aria-label="Open order" />
+            </Table.Row>
           </Table.Header>
-          <Table.Body spacing={6}>
+          <Table.Body>
             {orders.map((order) => (
               <Table.Row key={order.id}>
-                <Table.Cell>
+                <Table.Cell className="pl-5">
                   <Link
                     className="font-medium text-text-strong-950 outline-none hover:underline focus-visible:ring-2 focus-visible:ring-stroke-strong-950 rounded-sm"
                     href={`/orders/${order.id}`}
@@ -346,7 +349,7 @@ function OrderRows({ orders }: { orders: OrderListItem[] }) {
                 <Table.Cell className="text-right text-paragraph-sm font-semibold tabular-nums text-text-strong-950">
                   {formatUsd(order.balanceDueCents)}
                 </Table.Cell>
-                <Table.Cell className="pr-4 text-right">
+                <Table.Cell className="pr-5 text-right">
                   <Link
                     className="inline-flex size-8 items-center justify-center rounded-lg text-text-soft-400 outline-none transition group-hover/row:text-text-strong-950 hover:bg-bg-soft-200/60 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
                     href={`/orders/${order.id}`}
@@ -366,7 +369,7 @@ function OrderRows({ orders }: { orders: OrderListItem[] }) {
           <Link
             key={order.id}
             href={`/orders/${order.id}`}
-            className="block p-4 outline-none transition hover:bg-bg-weak-50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stroke-strong-950"
+            className="block p-4 sm:p-5 outline-none transition hover:bg-bg-weak-50/50 focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-stroke-strong-950"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
@@ -379,7 +382,7 @@ function OrderRows({ orders }: { orders: OrderListItem[] }) {
               </div>
               <StatusBadge status={order.status} />
             </div>
-            <dl className="mt-4 grid grid-cols-3 gap-3">
+            <dl className="mt-3.5 grid grid-cols-3 gap-3 rounded-xl bg-bg-weak-50/60 p-3 ring-1 ring-inset ring-stroke-soft-200/50">
               <MobileMetric label="Due" value={formatDateOnly(order.dueDate)} />
               <MobileMetric
                 label="Total"
@@ -403,38 +406,44 @@ function SummaryCard({
   label,
   value,
   hint,
-  danger = false,
+  tone = "neutral",
 }: {
   icon: ReactNode;
   label: string;
   value: string;
   hint: string;
-  danger?: boolean;
+  tone?: "primary" | "warning" | "success" | "error" | "neutral";
 }) {
+  const iconBubbleClass = {
+    primary: "bg-primary-alpha-10 text-primary-base ring-primary-base/20",
+    warning: "bg-warning-lighter text-warning-base ring-warning-base/20",
+    success: "bg-success-lighter text-success-base ring-success-base/20",
+    error: "bg-error-lighter text-error-dark ring-error-base/20",
+    neutral: "bg-bg-weak-50 text-text-soft-400 ring-stroke-soft-200",
+  }[tone];
+
+  const valueClass =
+    tone === "error"
+      ? "text-title-h4 font-semibold tracking-tight tabular-nums text-error-base sm:text-title-h3"
+      : "text-title-h4 font-semibold tracking-tight tabular-nums text-text-strong-950 sm:text-title-h3";
+
   return (
-    <article className="relative flex flex-col rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200">
+    <article className="group/card relative flex flex-col justify-between rounded-2xl bg-bg-white-0 p-5 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 transition-all duration-200 hover:shadow-regular-sm hover:ring-stroke-sub-300">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-subheading-xs uppercase font-medium tracking-wide text-text-soft-400">{label}</span>
+        <span className="text-subheading-xs uppercase font-medium text-text-soft-400">{label}</span>
         <span
-          className={
-            danger
-              ? "flex size-10 shrink-0 items-center justify-center rounded-full bg-error-lighter/50 text-error-base ring-1 ring-inset ring-error-light [&>svg]:size-5"
-              : "flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-weak-50 text-text-sub-600 ring-1 ring-inset ring-stroke-soft-200 [&>svg]:size-5"
-          }
+          className={cn(
+            "grid size-9 shrink-0 place-items-center rounded-xl ring-1 ring-inset [&>svg]:size-4.5",
+            iconBubbleClass,
+          )}
         >
           {icon}
         </span>
       </div>
-      <strong
-        className={
-          danger
-            ? "mt-4 block text-title-h5 font-semibold tracking-tight tabular-nums text-error-base"
-            : "mt-4 block text-title-h5 font-semibold tracking-tight tabular-nums text-text-strong-950"
-        }
-      >
-        {value}
-      </strong>
-      <span className="mt-1 block text-paragraph-xs text-text-sub-600">{hint}</span>
+      <div className="mt-4 space-y-1">
+        <div className={valueClass}>{value}</div>
+        <p className="text-paragraph-xs text-text-sub-600">{hint}</p>
+      </div>
     </article>
   );
 }
@@ -450,7 +459,7 @@ function MobileMetric({
 }) {
   return (
     <div>
-      <dt className="text-subheading-2xs uppercase text-text-soft-400">{label}</dt>
+      <dt className="text-subheading-2xs uppercase font-medium text-text-soft-400">{label}</dt>
       <dd
         className={
           strong

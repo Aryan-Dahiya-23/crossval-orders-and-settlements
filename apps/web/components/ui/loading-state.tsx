@@ -48,7 +48,7 @@ export function PageLoadingState({
       aria-live="polite"
       {...props}
     >
-      <div className="relative mb-4 flex size-14 items-center justify-center rounded-2xl bg-primary-lighter text-primary-base ring-1 ring-inset ring-primary-base/20">
+      <div className="relative mb-4 flex size-14 items-center justify-center rounded-2xl bg-primary-alpha-10 text-primary-base ring-1 ring-inset ring-primary-base/20">
         <LoadingSpinner size="large" />
       </div>
       <p className="text-label-md font-semibold text-text-strong-950">{message}</p>
@@ -66,7 +66,7 @@ export function TableLoadingState({
 }) {
   return (
     <div className="flex min-h-[200px] flex-col items-center justify-center gap-3 p-8 text-center">
-      <div className="flex size-10 items-center justify-center rounded-xl bg-primary-lighter text-primary-base ring-1 ring-inset ring-primary-base/20">
+      <div className="flex size-10 items-center justify-center rounded-xl bg-primary-alpha-10 text-primary-base ring-1 ring-inset ring-primary-base/20">
         <LoadingSpinner size="medium" />
       </div>
       <p className="text-paragraph-sm font-medium text-text-sub-600">{message}</p>

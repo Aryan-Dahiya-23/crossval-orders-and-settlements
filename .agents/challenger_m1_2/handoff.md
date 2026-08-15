@@ -1,95 +1,124 @@
-# Milestone 1 Challenger 2 Handoff Report
+# Milestone 1: Token Engine, Dynamic HSL & Audit Bug Fixes — Challenger 2 Verification Report
+
+**Agent**: Challenger 2  
+**Working Directory**: `/Users/aryandahiya/Desktop/Programming/crossval/.agents/challenger_m1_2/`  
+**Milestone**: Milestone 1 (Token Engine, Dynamic HSL, cn Consolidation, 6 Audit Bug Fixes)  
+**Verdict**: **APPROVE**  
+**Date**: 2026-08-16  
+
+---
 
 ## 1. Observation
 
-Adversarial stress-testing was executed across the four target domains for Milestone 1 (Order Lifecycle UI/UX - Phase 8):
+Adversarial testing and build integrity verification were conducted across `apps/web`, `apps/api`, and `packages/contracts` to validate the Milestone 1 work product and detect any regressions:
 
-1. **React Query Cache Consistency**:
-   - `apps/web/features/orders/query-keys.ts` lines 3–19 defines hierarchical keys: `all: ["orders"]`, `lists: () => ["orders", "list"]`, `list: (params) => ["orders", "list", params.status, ...]`, `summaries: () => ["orders", "summary"]`, and `detail: (orderId) => ["orders", "detail", orderId]`.
-   - `apps/web/features/orders/queries.ts`:
-     - Line 54 `useCreateOrder`: Immediately writes created order to `orderKeys.detail(id)` via `queryClient.setQueryData`, avoiding unnecessary network roundtrips, and invalidates `orderKeys.lists()` and `orderKeys.summaries()`.
-     - Line 64 `useReplaceOrder`: Updates `orderKeys.detail(targetId)` directly and invalidates `detail`, `lists`, and `summaries`. Handles both `{ orderId, order }` object syntax and bound `orderId`.
-     - Line 91 `useDeleteOrder`: Completely prunes `orderKeys.detail(id)` from the cache via `queryClient.removeQueries`, preventing stale detail cache retention, and invalidates `lists` and `summaries`.
-     - Line 112 `useRecordPayment`: Invalidates `detail(orderId)`, `lists()`, and `summaries()`.
+1. **Workspace Typecheck (`pnpm typecheck`)**:
+   - Command: `pnpm typecheck`
+   - Output: Scope: 3 of 4 workspace projects (`@crossval/contracts`, `apps/web`, `apps/api`) checked via `tsc --noEmit`.
+   - Result: 0 errors, exit code 0.
 
-2. **Delete Redirects & Modal Safety**:
-   - `apps/web/components/orders/order-delete-dialog.tsx`:
-     - Lines 33–54 `handleDelete`: Executes mutation asynchronously. On success, dismisses dialog (`onClose()`) and executes Next.js navigation `router.push("/orders")`.
-     - Lines 40–53: On failure (e.g. HTTP 409 locked order), prevents navigation and displays actionable contextual error banner within the open dialog (`setServerError`).
-     - Line 60: Dialog dismiss is guarded during `isPending` state so users cannot dismiss mid-mutation.
+2. **Workspace Linting (`pnpm lint`)**:
+   - Command: `pnpm lint`
+   - Output: Scope: 3 of 4 workspace projects (`@crossval/contracts`, `apps/api`, `apps/web`) checked via `eslint`.
+   - Result: 0 errors, 0 warnings, exit code 0.
 
-3. **Error Recovery & Parsing Matrix**:
-   - `apps/web/features/orders/errors.ts`:
-     - Lines 16–81 `parseOrderApiError`: Formats `409` (`ORDER_LOCKED_AFTER_PAYMENT`) into `{ isLocked: true, title: "Order is locked", message: "..." }`; `404` into `{ isNotFound: true, title: "Order not found" }`; `422` into `{ title: "Validation error", fieldErrors }`; `401` into session expired notice; and uncaught/network errors into clear network error banners.
-     - Lines 86–102 `applyApiFieldErrorsToForm`: Iterates returned server field errors and sets React Hook Form `type: "server"` field errors.
-   - `apps/web/components/orders/edit-order-workspace.tsx` lines 103–108: Gracefully handles race conditions when an order receives a payment while an edit is in progress; on 409 locked, it triggers `orderQuery.refetch()`, which automatically switches the workspace view to `OrderEditGuard`.
+3. **Workspace Production Build (`pnpm build`)**:
+   - Command: `pnpm build`
+   - Output: Turbopack compilation succeeded for Next.js 16.3.1; all static (`/`, `/_not-found`, `/login`, `/orders`, `/orders/new`, `/register`) and dynamic (`/orders/[orderId]`, `/orders/[orderId]/edit`) pages generated cleanly with 0 build warnings.
+   - Result: Exit code 0.
 
-4. **Date Format Handling & Timezone Robustness**:
-   - `apps/web/lib/format.ts` lines 18–26 `formatDateOnly`: Correctly decomposes `YYYY-MM-DD` and formats via `Date.UTC(...)` with `timeZone: "UTC"`, eliminating timezone day-shift bugs across different client locales.
-   - `apps/web/features/orders/form-schema.ts` line 64: Enforces strict `YYYY-MM-DD` regex validation.
-   - `apps/api/src/modules/orders/domain.ts` lines 57–72: Backend `isCanonicalDateOnly` validates calendar correctness (rejects Feb 29 on non-leap years, month 13, invalid day lengths).
+4. **All 11 Web Test Suites (`pnpm --filter @crossval/web test`)**:
+   - Command: `vitest run`
+   - Output:
+     - `✓ features/orders/api.test.ts` (12 tests)
+     - `✓ components/orders/order-form.test.ts` (16 tests)
+     - `✓ features/orders/queries.test.ts` (4 tests)
+     - `✓ components/orders/payment-dialog.test.ts` (10 tests)
+     - `✓ components/orders/challenger-m2-idempotency-cache.test.ts` (18 tests)
+     - `✓ features/orders/adversarial-milestone1.test.ts` (20 tests)
+     - `✓ features/orders/errors.test.ts` (9 tests)
+     - `✓ features/orders/query-keys.test.ts` (3 tests)
+     - `✓ features/orders/list-state.test.ts` (7 tests)
+     - `✓ features/orders/challenger-m2-settlement.test.ts` (12 tests)
+     - `✓ features/orders/challenger-m1-adversarial.test.ts` (16 tests)
+   - Result: **11/11 test files passed, 127/127 tests passed (0 failures)**, exit code 0.
 
-5. **Financial Precision & Math Invariants**:
-   - `apps/web/features/orders/form-schema.ts` lines 7–18 `decimalToCents`: Uses exact regex split and whole/fraction parsing rather than naive floating-point multiplication, eliminating binary float precision hazards (e.g., `19.99 * 100` resulting in `1998.9999999999998`).
-   - Line 27: Enforces strict integer cent cap `$9,999,999.99` (999,999,999 cents) on line item totals and grand total.
+5. **Backend Unit Test Suites (`apps/api`)**:
+   - Command: `pnpm --filter @crossval/api test`
+   - Output: 5 test files passed, 16/16 tests passed (`tests/orders/domain.test.ts`, `tests/config/environment.test.ts`, `tests/db/object-id.test.ts`, `tests/orders/query.test.ts`, `tests/health.test.ts`).
+   - Result: Exit code 0.
+
+6. **Audit Bug Resolution Verification**:
+   - **Bug 1 (`bg-primary-lighter` resolution)**: `apps/web/tailwind.config.ts` now defines `primary.lighter` and `primary.alpha`; `user-button.tsx:75` and `loading-state.tsx:51, 69` use `bg-primary-alpha-10` with matching ring tokens.
+   - **Bug 2 (`text-blue-500` elimination)**: `apps/web/components/ui/status-badge.tsx` defines the `information` variant with compound light style (`bg-information-lighter text-information-base`), and `apps/web/components/orders/status-badge.tsx:14-17` maps `partially_paid` to `statusVariant = "information"` and `dotColorClass = "text-information-base"`.
+   - **Bug 3 (`subheading-xs` typography & tracking)**: All manual `tracking-wider` and `font-semibold` overrides removed; standardized to `text-subheading-xs uppercase font-medium text-text-soft-400`.
+   - **Bug 4 (Table header styling)**: `order-form.tsx:243-255` line-items table `<thead>` matches `TableHead` standard (`py-2 text-paragraph-sm text-text-sub-600` with `first:rounded-l-lg last:rounded-r-lg`).
+   - **Bug 5 (Label weights & section headings)**: Section titles standardized to `text-label-md font-semibold text-text-strong-950` across `order-form.tsx`, `order-detail-workspace.tsx`, `orders-dashboard.tsx`, and `sample-data-cta.tsx`. Input labels strictly use `text-label-sm font-medium text-text-strong-950`.
+   - **Bug 6 (Back link vertical rhythm)**: Standardized to `<div className="mb-5">` containing the back link across `create-order-workspace.tsx`, `edit-order-workspace.tsx`, and `order-detail-workspace.tsx`.
+
+7. **Hardcoded Color & Design Token Audit**:
+   - `rg -n "text-blue-500|bg-gray-|text-gray-|bg-red-|hover:bg-red-|text-red-|bg-blue-|text-green-|bg-green-|border-gray-|border-blue-|border-red-|border-green-" apps/web` -> 0 matches found across the entire web application.
 
 ---
 
 ## 2. Logic Chain
 
-1. **Cache Invalidation Correctness**:
-   - By structuring list query keys as arrays starting with `["orders", "list", ...]`, calling `invalidateQueries({ queryKey: ["orders", "list"] })` matches every paginated, filtered, and sorted query instance in TanStack React Query.
-   - The adversarial test suite directly verified that multiple divergent queries (`status=pending`, `status=paid`, `search=Acme`) are all simultaneously marked stale upon mutation.
+1. **Token Engine & Dynamic HSL Invariance**:
+   - The helper `const hsl = (token: string) => \`hsl(var(\${token}) / <alpha-value>)\`;` in `tailwind.config.ts` dynamically handles arbitrary Tailwind opacity modifiers (e.g. `bg-error-lighter/50`, `ring-primary-base/20`) without breaking standard single-color declarations.
+   - Dual mapping of semantic keys (`bg.white`, `text.strong`, `stroke.soft`) alongside numeric keys (`bg['white-0']`, `text['strong-950']`) ensures backward compatibility with all existing component implementations.
 
-2. **Error Recovery & Immutability Guarantees**:
-   - Financial audit rules mandate that once a payment exists, the order document cannot be altered or removed.
-   - The UI enforces this across multiple layers: Action bar buttons are disabled with descriptive tooltips, the edit workspace renders `OrderEditGuard` when payments exist, and any backend 409 response is parsed into clean, non-crashing UI banners.
+2. **Utility Harmonization**:
+   - Re-exporting `cn` and `cnExt` in `apps/web/lib/cn.ts` directly from `apps/web/utils/cn.ts` guarantees that all imports resolve to the exact same Tailwind merge configuration extending `font-size`, `shadow`, and `rounded` token taxonomies.
 
-3. **Timezone & Monetary Precision**:
-   - Explicit UTC construction in `formatDateOnly` and integer math in `decimalToCents` prevent off-by-one calendar shifts and decimal cent rounding errors.
+3. **Rendering & Component Robustness**:
+   - Standardizing layout spacing (`mb-5` on back links) and table headers creates cohesive visual rhythm without altering any React Hook Form bindings, props, or query logic.
+   - Adding the `information` variant to `ui/status-badge.tsx` provides clean polymorphic rendering for `partially_paid` badges using design tokens rather than hardcoded palette classes.
 
 ---
 
 ## 3. Caveats
 
-- **No Caveats**: All 20 adversarial stress scenarios passed without regression. Zero lint or type errors exist. Full production build completed successfully.
+1. **Visual-Only Boundary**: All modifications are strictly restricted to `apps/web`. Zero modifications were made to `apps/api` or `packages/contracts`.
+2. **Behavioral Invariance**: All query keys, cache invalidation behaviors, form schemas, validation rules, and integer-cents monetary calculations remain unchanged.
+3. **No External Dependencies**: No extra npm packages were added to `package.json`.
 
 ---
 
 ## 4. Conclusion
 
-**Verdict: CONFIRMED**
+**Verdict: APPROVE**
 
-The Milestone 1 (Order Lifecycle UI/UX - Phase 8) implementation is exceptionally robust, correct, and fully compliant with all domain and architectural requirements.
+The Milestone 1 work product meets all technical, architectural, and visual requirements:
+- Zero typecheck errors across all workspace packages.
+- Zero ESLint warnings or errors.
+- Clean Next.js 16.3.1 production build.
+- All 11 test suites and 127 individual unit/integration tests pass with 100% success.
+- All 6 audit bugs are resolved accurately.
+- Hardcoded color tokens have been completely eliminated.
 
 ---
 
 ## 5. Verification Method
 
-To independently reproduce and verify all results:
+To independently execute and verify all checks:
 
 ```bash
-# 1. Typecheck all packages
+# 1. Typecheck all workspace packages
 pnpm typecheck
 
-# 2. Lint all packages
+# 2. Lint all workspace packages with zero-warning tolerance
 pnpm lint
 
-# 3. Execute unit & adversarial test suites
-pnpm test
-
-# 4. Execute backend integration test suite against real MongoDB
-pnpm test:integration
-
-# 5. Execute production build
+# 3. Compile production builds for all packages
 pnpm build
+
+# 4. Run all web unit and integration test suites
+pnpm --filter @crossval/web test
+
+# 5. Run API test suite
+pnpm --filter @crossval/api test
+
+# 6. Audit codebase for any legacy hardcoded colors
+rg -n "text-blue-500|bg-gray-|text-gray-|bg-red-|hover:bg-red-|text-red-|bg-blue-|text-green-|bg-green-|border-gray-|border-blue-|border-red-|border-green-" apps/web
 ```
 
-### Verification Results Summary:
-- `pnpm typecheck`: Exit status 0 (0 errors)
-- `pnpm lint`: Exit status 0 (0 warnings, 0 errors)
-- `pnpm test`:
-  - `@crossval/web`: 7 test files passed, 70/70 tests passed (including 20 adversarial stress tests)
-  - `@crossval/api`: 5 test files passed, 16/16 tests passed
-- `pnpm test:integration`: 4 test files passed, 31/31 integration tests passed
-- `pnpm build`: Next.js optimized production build completed with static and dynamic routes compiled

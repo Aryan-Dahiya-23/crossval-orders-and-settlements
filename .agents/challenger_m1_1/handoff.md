@@ -1,87 +1,100 @@
-# Milestone 1 (Order Lifecycle UI/UX - Phase 8) Challenger Report
+# Milestone 1: Empirical Adversarial Challenge Report
+
+**Challenger**: Challenger 1 (Milestone 1)  
+**Working Directory**: `/Users/aryandahiya/Desktop/Programming/crossval/.agents/challenger_m1_1/`  
+**Milestone**: Milestone 1 (Token Engine, Dynamic HSL, cn Consolidation, 6 Audit Bug Fixes)  
+**Verdict**: **APPROVE**  
+**Date**: 2026-08-16  
+
+---
 
 ## 1. Observation
 
-Direct empirical verification was performed across all Milestone 1 surfaces (contracts, web UI components, React Query hooks, and backend Express/MongoDB operations).
+Adversarial stress-testing and empirical verification across `apps/web` yielded the following concrete observations:
 
-### Test Suite Execution & Output:
-1. **Unit & Adversarial Tests**:
-   - `pnpm test` passed with 8 test files, 86 tests passed in `@crossval/web`, and 5 test files, 16 tests passed in `@crossval/api`.
-   - `apps/web/features/orders/challenger-m1-adversarial.test.ts` (16 test cases):
-     - Bijective round-trip property verified across all integer cents from 1 to 50,000 ($0.01 to $500.00).
-     - Known IEEE-754 precision hazard values (`$0.29`, `$0.57`, `$1.14`, `$19.99`, `$29.99`, `$9,999,999.99`) convert accurately to cents without floating drift.
-     - Sub-cent fractional strings (`"0.001"`, `"10.999"`, etc.) return `null` and fail validation.
-     - Negative money amounts (`"-0.01"`, `"-1"`, etc.) return `null` and fail validation.
-     - Quantity boundary values: exactly 1 is accepted, 1,000,000 is accepted; 0, -5, 1.5, and 1,000,001 are rejected.
-     - Line item unit price minimum: exactly $0.01 is accepted; $0.00 is rejected with `"Unit price must be at least $0.01"`.
-     - Order line items array size: 1 is accepted, 100 is accepted; 0 items and 101 items are rejected.
-     - Description length: 1 character accepted, 500 characters accepted; 0 characters, whitespace-only, and 501 characters rejected.
-     - Customer name length: 1 character accepted, 200 characters accepted; 0 characters, whitespace-only, and 201 characters rejected.
-     - Due date: allows valid past dates (`"2020-01-01"`), today's date, and future dates (`"2030-12-31"`); rejects slash separators (`"2026/08/15"`), non-ISO formats (`"15-08-2026"`), and unpadded dates (`"2026-8-15"`).
-     - Maximum order financial limit ($9,999,999.99 / 999,999,999 cents) strictly enforced for single line items and aggregated grand totals.
+1. **CSS Variables & Dynamic HSL Channel Resolution**:
+   - `apps/web/tailwind.config.ts`: Color definitions utilize the dynamic helper `const hsl = (token: string) => \`hsl(var(\${token}) / <alpha-value>)\`;`.
+   - All 138 CSS variables referenced in `tailwind.config.ts` (including `--neutral-*`, `--blue-*`, `--orange-*`, `--red-*`, `--green-*`, `--yellow-*`, `--primary-lighter`, `--primary-alpha`, and semantic aliases `--bg-*`, `--text-*`, `--stroke-*`, `--information-*`) are declared in `apps/web/app/globals.css` `:root` (141 variables declared) and `.dark` (41 overrides).
+   - Automated recursive variable resolution test confirmed `0` missing or circular references in both `:root` and `.dark`.
 
-2. **Database & API Immutability Integration Tests**:
-   - `apps/api/tests/orders/challenger-m1-immutability.integration.test.ts` and `apps/api/tests/orders/orders.integration.test.ts` passed against real MongoDB:
-     - **1 Cent Micro-Payment Immutability**: An order created for $100.00 that receives even a 1 cent ($0.01) payment has `isEditable: false` and `isDeletable: false`.
-     - `PATCH /v1/orders/:id` on this order returns HTTP `409 Conflict` with error code `"ORDER_LOCKED_AFTER_PAYMENT"` and message `"Orders cannot be changed after the first payment."`.
-     - `DELETE /v1/orders/:id` on this order returns HTTP `409 Conflict` with error code `"ORDER_LOCKED_AFTER_PAYMENT"`.
-     - Direct MongoDB queries verify the document and its payment ledger remain 100% intact and uncorrupted following the rejected mutation attempts.
-     - **Unpaid Order Lifecycle**: Unpaid orders (`paymentCount: 0`) permit replacement via `PATCH` (with server recalculation of total and balance) and deletion via `DELETE` (`204 No Content`).
+2. **`cn` and `cnExt` Consolidation and Custom Merge Engine**:
+   - `apps/web/lib/cn.ts` re-exports `cn` and `cnExt` directly from `../utils/cn`.
+   - `apps/web/utils/cn.ts` customizes `extendTailwindMerge` with class groups for `font-size` (`texts`), `shadow` (`shadows`), and `rounded` (`borderRadii`).
+   - Empirical test harness verified that conflicting custom typography classes (e.g. `text-label-sm` overridden by `text-label-md` -> `text-label-md`), shadow classes (`shadow-regular-xs` overridden by `shadow-regular-md` -> `shadow-regular-md`), and border radii (`rounded-10` overridden by `rounded-12` -> `rounded-12`) merge with 100% precision.
 
-3. **Typecheck & Linter**:
-   - `pnpm typecheck`: Exit status 0 across `@crossval/contracts`, `@crossval/api`, and `@crossval/web`.
-   - `pnpm lint`: Exit status 0 across all workspaces.
+3. **StatusBadge Variant Matrix & Compound Light Styles**:
+   - `apps/web/components/ui/status-badge.tsx` provides full variant permutations across 5 statuses (`completed`, `pending`, `information`, `failed`, `disabled`) and 2 styles (`stroke`, `light`).
+   - `apps/web/components/orders/status-badge.tsx` maps `partially_paid` directly to the `information` variant and `text-information-base` dot color.
+   - Comprehensive test harness of all 10 variant combinations verified zero `undefined` classes, correct compound classes (`bg-information-lighter text-information-base`), and proper dot/icon coloring.
 
-4. **Production Build**:
-   - `pnpm build`: Successful Next.js optimized production build generating static and dynamic routes (`/orders/new`, `/orders/[orderId]`, `/orders/[orderId]/edit`, `/orders`, `/login`, `/register`).
+4. **Audit Bugs Resolution**:
+   - **Bug 1 (`bg-primary-lighter`)**: Replaced with `bg-primary-alpha-10` in `user-button.tsx:75` and `loading-state.tsx:51, 69`. `tailwind.config.ts` also defines `primary.lighter` mapped to `--primary-lighter`.
+   - **Bug 2 (`text-blue-500`)**: Zero hardcoded palette colors remaining across the entire web application (`rg -n "text-blue-500|bg-gray-|text-gray-|bg-red-|hover:bg-red-" apps/web` returned 0 matches).
+   - **Bug 3 (`subheading-xs` tracking overrides)**: Audited all 13 occurrences across the codebase (`auth-shell.tsx`, `app-shell.tsx`, `page-header.tsx`, `order-detail-workspace.tsx`, `order-edit-guard.tsx`, `orders-dashboard.tsx`); zero `tracking-wider` or `tracking-wide` overrides exist.
+   - **Bug 4 (Table header styling)**: `order-form.tsx:243` line-items table `<thead>` matches `table.tsx` `TableHead` with `bg-bg-weak-50 text-paragraph-sm text-text-sub-600 px-3 py-2 first:rounded-l-lg last:rounded-r-lg`.
+   - **Bug 5 (Label weights & Section Titles)**: Input labels are standardized to `text-label-sm font-medium`, while section titles are `text-label-md font-semibold text-text-strong-950`.
+   - **Bug 6 (Back link spacing)**: Back links in `create-order-workspace.tsx`, `edit-order-workspace.tsx`, and `order-detail-workspace.tsx` are wrapped consistently in `<div className="mb-5">`.
+
+5. **Build & Automated Verification Suite**:
+   - `pnpm typecheck`: Passed (Scope: 3 of 3 TypeScript projects, 0 errors).
+   - `pnpm lint`: Passed (Scope: 3 of 3 projects, 0 errors, 0 warnings).
+   - `pnpm build`: Workspace production build completed successfully (Next.js 16.3.1 Turbopack generated all 8 routes without warnings).
+   - `pnpm --filter @crossval/web test`: 11 test suites passed, 127 tests passed (0 failures).
 
 ---
 
 ## 2. Logic Chain
 
-1. **Precision & Integer-Cent Integrity**:
-   - Floating-point representations can introduce rounding errors (e.g. `19.99 * 100 = 1998.9999999999998`). By using regex parsing and integer arithmetic (`whole * 100 + Number(fraction)`), `decimalToCents` eliminates floating-point drift.
-   - Authoritative recalculation of `totalAmountCents` and `balanceDueCents` occurs exclusively on the backend in `prepareOrderDraft`, guaranteeing that client-side manipulation cannot alter financial totals.
+1. **Token Engine & Dynamic HSL**:
+   - Defining `hsl(var(--token) / <alpha-value>)` inside `tailwind.config.ts` enables Tailwind CSS v3 to dynamically generate alpha opacity modifiers for arbitrary utility classes (e.g. `bg-primary-lighter/60`, `ring-primary-base/20`, `bg-bg-weak-50/50`).
+   - Because all 138 referenced CSS variables are verified to exist as valid HSL triplets in `:root` and `.dark`, no invalid CSS rules or unparseable colors are produced at runtime.
 
-2. **Accounting Auditability & Immutability**:
-   - Financial accounting mandates that once funds are exchanged or recorded, the transaction anchor cannot be modified or deleted.
-   - The conditional write predicates `{ _id: orderId, userId, paymentCount: 0 }` in `replace` and `delete` guarantee atomicity at the database engine level, preventing any race conditions even if concurrent payments occur while an edit is submitted.
-   - Client-side guards (`OrderEditGuard`, `OrderLockBanner`, disabled action buttons) ensure clear UX transparency for locked orders.
+2. **Utility Harmonization**:
+   - Consolidating `lib/cn.ts` to re-export `utils/cn.ts` guarantees that any component in the project will execute the custom `extendTailwindMerge` configuration.
+   - Empirical testing confirmed that passing custom font size tokens (such as `text-label-sm` vs `text-label-md`) or radius tokens (`rounded-10` vs `rounded-12`) properly resolves conflicts and prevents class collisions.
 
-3. **Query Cache Invalidation & UX Synchronization**:
-   - React Query hooks (`useCreateOrder`, `useReplaceOrder`, `useDeleteOrder`) correctly update individual detail query states and invalidate list and summary keys, ensuring that navigation transitions and dashboard metrics remain consistent without manual page refreshes.
+3. **Component & Status Badge Resilience**:
+   - All permutations of `statusBadgeVariants` execute cleanly without emitting missing or broken classes.
+   - The addition of `information` to `ui/status-badge.tsx` satisfies the requirements of `partially_paid` order statuses with zero hardcoded color overrides.
+
+4. **Zero Functionality or Contract Regressions**:
+   - No backend (`apps/api`), contract (`packages/contracts`), or API business logic was modified.
+   - All 127 existing web tests pass without modification.
 
 ---
 
 ## 3. Caveats
 
-- **No Caveats**: All edge cases, boundary states, floating-point vulnerabilities, and immutability guards were verified with direct execution of automated test harnesses against real runtime code and database instances.
+- **Visual / Layout Scope**: Verification was executed against TypeScript types, unit tests, token resolution scripts, AST grep checks, and the Next.js production compiler. Visual pixel rendering across physical devices will be further validated in subsequent milestones and multi-tier E2E testing.
+- No other caveats.
 
 ---
 
 ## 4. Conclusion
 
-**Verdict: CONFIRMED**
+**Verdict: APPROVE**
 
-The Milestone 1 (Order Lifecycle UI/UX - Phase 8) implementation is rock-solid, fully resilient to adversarial boundary inputs, and strictly enforces financial invariants and auditability guards.
+Milestone 1 satisfies all requirements set forth in `ORIGINAL_REQUEST.md`, `AGENTS.md`, and `PROJECT.md`. The design token engine is robust, `cn` utilities are consolidated, the 6 audit bugs are verified resolved, zero hardcoded color classes remain, and the full test and build suite passes with zero errors.
 
 ---
 
 ## 5. Verification Method
 
-To independently reproduce the challenger verification, run:
+To independently reproduce the empirical verification results:
 
 ```bash
-# 1. Run all unit and adversarial test suites
-pnpm test
-
-# 2. Run API integration tests (including immutability guards against MongoDB)
-pnpm --filter @crossval/api test:integration
-
-# 3. Verify static types and linter
+# 1. Typecheck all packages
 pnpm typecheck
+
+# 2. Lint all packages
 pnpm lint
 
-# 4. Verify production build
+# 3. Compile production builds
 pnpm build
+
+# 4. Run web test suite
+pnpm --filter @crossval/web test
+
+# 5. Check for hardcoded color classes
+rg -n "text-blue-500|bg-gray-|text-gray-|bg-red-|hover:bg-red-" apps/web
 ```

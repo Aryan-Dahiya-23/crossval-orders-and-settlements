@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signupRequestSchema, type SignupRequest } from "@crossval/contracts";
+import { RiLock2Line, RiMailLine } from "@remixicon/react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -45,6 +46,7 @@ export function SignupForm() {
 
   return (
     <form className="grid gap-4" onSubmit={submit} noValidate>
+      {errors.root?.message ? <Alert tone="danger">{errors.root.message}</Alert> : null}
       <Field
         label="Email address"
         htmlFor="email"
@@ -55,6 +57,7 @@ export function SignupForm() {
           type="email"
           autoComplete="email"
           placeholder="you@company.com"
+          icon={RiMailLine}
           hasError={errors.email !== undefined}
           aria-invalid={errors.email !== undefined}
           {...register("email")}
@@ -71,16 +74,16 @@ export function SignupForm() {
           type="password"
           autoComplete="new-password"
           placeholder="Create a secure password"
+          icon={RiLock2Line}
           hasError={errors.password !== undefined}
           aria-invalid={errors.password !== undefined}
           {...register("password")}
         />
       </Field>
-      {errors.root?.message ? <Alert tone="danger">{errors.root.message}</Alert> : null}
-      <Button.Root className="mt-1 w-full" variant="primary" size="medium" disabled={signup.isPending} type="submit">
+      <Button.Root className="mt-2 w-full" variant="primary" size="medium" disabled={signup.isPending} type="submit">
         {signup.isPending ? "Creating account…" : "Create account"}
       </Button.Root>
-      <p className="text-center text-paragraph-sm text-text-sub-600">
+      <p className="pt-2 text-center text-paragraph-sm text-text-sub-600">
         Already have an account?{" "}
         <Link
           className="font-semibold text-text-strong-950 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stroke-strong-950 rounded-sm"
@@ -92,3 +95,5 @@ export function SignupForm() {
     </form>
   );
 }
+
+export default SignupForm;

@@ -111,7 +111,7 @@ function Sidebar({
 
       <div className="flex flex-1 flex-col overflow-hidden py-5 px-5">
         {!collapsed && (
-          <p className="mb-3 px-3 text-subheading-xs uppercase text-text-soft-400 font-medium tracking-wider">
+          <p className="mb-3 px-3 text-subheading-xs uppercase text-text-soft-400 font-medium">
             Workspace
           </p>
         )}
@@ -171,18 +171,28 @@ function MobileHeader({ viewer }: { viewer?: Viewer | undefined }) {
         </Dialog.Trigger>
         <Dialog.Portal>
           <Dialog.Overlay className="fixed inset-0 z-40 bg-overlay backdrop-blur-[10px] lg:hidden" />
-          <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex h-full w-[min(86vw,300px)] flex-col bg-bg-white-0 p-4 shadow-regular-md outline-none lg:hidden">
-            <Dialog.Title className="text-label-md font-semibold text-text-strong-950 pb-2">
-              Navigation
-            </Dialog.Title>
+          <Dialog.Content className="fixed inset-y-0 left-0 z-50 flex h-full w-[min(86vw,300px)] flex-col bg-bg-white-0 p-5 shadow-regular-md outline-none lg:hidden">
+            <div className="flex h-[52px] items-center justify-between border-b border-stroke-soft-200 pb-3 mb-4">
+              <Brand href="/orders" />
+              <Dialog.Close asChild>
+                <CompactButton.Root
+                  variant="stroke"
+                  size="large"
+                  aria-label="Close navigation"
+                >
+                  <CompactButton.Icon as={RiArrowLeftSLine} />
+                </CompactButton.Root>
+              </Dialog.Close>
+            </div>
+            <Dialog.Title className="sr-only">Navigation</Dialog.Title>
             <Dialog.Description className="sr-only">
               Workspace navigation menu
             </Dialog.Description>
-            <p className="mb-3 px-3 text-subheading-xs uppercase text-text-soft-400 font-medium tracking-wider">
+            <p className="mb-3 px-3 text-subheading-xs uppercase text-text-soft-400 font-medium">
               Workspace
             </p>
             <NavigationLinks onNavigate={() => setOpen(false)} />
-            <div className="mt-auto pt-8">
+            <div className="mt-auto pt-6 border-t border-stroke-soft-200">
               <UserButton viewer={viewer} />
             </div>
           </Dialog.Content>

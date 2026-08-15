@@ -7,7 +7,7 @@ import { useEffect, useState } from "react";
 import { normalizeOrderSearch } from "../../features/orders/list-state";
 import * as Input from "../ui/input";
 import * as Select from "../ui/select";
-import { cn } from "../../lib/cn";
+import { cn } from "@/utils/cn";
 
 const filters: Array<{
   value: OrderListQuery["status"];
@@ -109,7 +109,7 @@ export function OrdersToolbar({
               type="button"
               aria-pressed={isActive}
               className={cn(
-                "h-8 shrink-0 rounded-lg px-3 text-label-xs font-medium transition duration-200 ease-out outline-none",
+                "h-8 shrink-0 rounded-lg px-3 text-label-xs font-medium transition duration-200 ease-out outline-none focus-visible:ring-2 focus-visible:ring-stroke-strong-950 focus-visible:ring-inset",
                 isActive
                   ? "bg-bg-white-0 text-text-strong-950 shadow-regular-xs font-semibold"
                   : "text-text-sub-600 hover:text-text-strong-950 hover:bg-bg-soft-200/40",
@@ -166,7 +166,7 @@ export function OrdersToolbar({
               />
               {searchDraft.length > 0 ? (
                 <button
-                  className="grid size-5 place-items-center text-text-soft-400 hover:text-text-strong-950"
+                  className="grid size-5 place-items-center rounded-sm text-text-soft-400 hover:text-text-strong-950 outline-none focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
                   type="button"
                   aria-label="Clear customer search"
                   onClick={() => {

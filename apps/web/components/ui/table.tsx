@@ -10,8 +10,12 @@ const Table = React.forwardRef<
   React.TableHTMLAttributes<HTMLTableElement>
 >(({ className, ...rest }, forwardedRef) => {
   return (
-    <div className={cnExt('w-full overflow-x-auto', className)}>
-      <table ref={forwardedRef} className='w-full' {...rest} />
+    <div className='w-full overflow-x-auto'>
+      <table
+        ref={forwardedRef}
+        className={cnExt('w-full border-collapse text-left', className)}
+        {...rest}
+      />
     </div>
   );
 });
@@ -20,8 +24,14 @@ Table.displayName = 'Table';
 const TableHeader = React.forwardRef<
   HTMLTableSectionElement,
   React.HTMLAttributes<HTMLTableSectionElement>
->(({ ...rest }, forwardedRef) => {
-  return <thead ref={forwardedRef} {...rest} />;
+>(({ className, ...rest }, forwardedRef) => {
+  return (
+    <thead
+      ref={forwardedRef}
+      className={cn('border-b border-stroke-soft-200', className)}
+      {...rest}
+    />
+  );
 });
 TableHeader.displayName = 'TableHeader';
 
@@ -33,7 +43,7 @@ const TableHead = React.forwardRef<
     <th
       ref={forwardedRef}
       className={cnExt(
-        'bg-bg-weak-50 px-3 py-2 text-left text-paragraph-sm text-text-sub-600 first:rounded-l-lg last:rounded-r-lg',
+        'bg-bg-weak-50 px-3.5 py-3 text-left text-paragraph-sm font-semibold text-text-sub-600 whitespace-nowrap',
         className,
       )}
       {...rest}
@@ -44,23 +54,14 @@ TableHead.displayName = 'TableHead';
 
 const TableBody = React.forwardRef<
   HTMLTableSectionElement,
-  React.HTMLAttributes<HTMLTableSectionElement> & {
-    spacing?: number;
-  }
->(({ spacing = 8, ...rest }, forwardedRef) => {
+  React.HTMLAttributes<HTMLTableSectionElement>
+>(({ className, ...rest }, forwardedRef) => {
   return (
-    <>
-      {/* to have space between thead and tbody */}
-      <tbody
-        aria-hidden='true'
-        className='table-row'
-        style={{
-          height: spacing,
-        }}
-      />
-
-      <tbody ref={forwardedRef} {...rest} />
-    </>
+    <tbody
+      ref={forwardedRef}
+      className={cn('divide-y divide-stroke-soft-200', className)}
+      {...rest}
+    />
   );
 });
 TableBody.displayName = 'TableBody';
@@ -70,7 +71,11 @@ const TableRow = React.forwardRef<
   React.HTMLAttributes<HTMLTableRowElement>
 >(({ className, ...rest }, forwardedRef) => {
   return (
-    <tr ref={forwardedRef} className={cn('group/row', className)} {...rest} />
+    <tr
+      ref={forwardedRef}
+      className={cn('group/row transition-colors', className)}
+      {...rest}
+    />
   );
 });
 TableRow.displayName = 'TableRow';
@@ -104,7 +109,7 @@ const TableCell = React.forwardRef<
     <td
       ref={forwardedRef}
       className={cnExt(
-        'h-16 px-3 transition duration-200 ease-out first:rounded-l-xl last:rounded-r-xl group-hover/row:bg-bg-weak-50',
+        'h-12 px-3.5 py-2.5 text-paragraph-sm text-text-strong-950 transition duration-150 ease-out group-hover/row:bg-bg-weak-50/50',
         className,
       )}
       {...rest}

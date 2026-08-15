@@ -26,15 +26,27 @@ export function OrdersPagination({
   const hasResults = meta.totalItems > 0;
 
   return (
-    <footer className="flex flex-col gap-3 border-t border-stroke-soft-200 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <footer className="flex flex-col gap-3 border-t border-stroke-soft-200 bg-bg-weak-50/40 px-5 py-3 sm:flex-row sm:items-center sm:justify-between">
       <p className="text-paragraph-xs text-text-sub-600" aria-live="polite">
-        {hasResults
-          ? `${range.start}–${range.end} of ${meta.totalItems} orders`
-          : "0 orders"}
+        {hasResults ? (
+          <>
+            Showing{" "}
+            <strong className="font-semibold text-text-strong-950">
+              {range.start}–{range.end}
+            </strong>{" "}
+            of{" "}
+            <strong className="font-semibold text-text-strong-950">
+              {meta.totalItems}
+            </strong>{" "}
+            orders
+          </>
+        ) : (
+          "0 orders"
+        )}
       </p>
       <div className="flex flex-wrap items-center gap-3">
         <label className="mr-auto flex items-center gap-2 text-paragraph-xs text-text-sub-600 sm:mr-2">
-          Rows
+          <span className="font-medium text-text-sub-600">Rows</span>
           <div className="w-20">
             <Select.Select
               aria-label="Orders per page"
@@ -51,7 +63,7 @@ export function OrdersPagination({
             </Select.Select>
           </div>
         </label>
-        <span className="min-w-20 text-center text-paragraph-xs font-medium text-text-sub-600">
+        <span className="min-w-20 text-center text-paragraph-xs font-medium tabular-nums text-text-sub-600">
           {isPlaceholderData
             ? `Page ${requestedPage} · Updating…`
             : meta.totalPages > 0

@@ -50,8 +50,8 @@ const ModalContent = React.forwardRef<
             ref={forwardedRef}
             className={cnExt(
               // base
-              'relative w-full max-w-[400px]',
-              'rounded-20 bg-bg-white-0 shadow-regular-md',
+              'relative w-full max-w-[420px]',
+              'overflow-hidden rounded-20 bg-bg-white-0 shadow-regular-md ring-1 ring-inset ring-stroke-soft-200',
               // focus
               'focus:outline-none',
               // animation
@@ -68,7 +68,7 @@ const ModalContent = React.forwardRef<
                 <CompactButton.Root
                   variant='ghost'
                   size='large'
-                  className='absolute right-4 top-4'
+                  className='absolute right-4 top-4 text-text-sub-600 hover:text-text-strong-950'
                 >
                   <CompactButton.Icon as={RiCloseLine} />
                 </CompactButton.Root>
@@ -97,7 +97,7 @@ function ModalHeader({
   return (
     <div
       className={cnExt(
-        'relative flex items-start gap-3.5 py-4 pl-5 pr-14 before:absolute before:inset-x-0 before:bottom-0 before:border-b before:border-stroke-soft-200',
+        'relative flex items-start gap-3.5 border-b border-stroke-soft-200 p-5 pr-12',
         className,
       )}
       {...rest}
@@ -105,7 +105,7 @@ function ModalHeader({
       {children || (
         <>
           {Icon && (
-            <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 ring-1 ring-inset ring-stroke-soft-200'>
+            <div className='flex size-10 shrink-0 items-center justify-center rounded-full bg-bg-white-0 ring-1 ring-inset ring-stroke-soft-200 shadow-regular-xs'>
               <Icon className='size-5 text-text-sub-600' />
             </div>
           )}
@@ -131,7 +131,7 @@ const ModalTitle = React.forwardRef<
   return (
     <DialogPrimitive.Title
       ref={forwardedRef}
-      className={cnExt('text-label-sm text-text-strong-950', className)}
+      className={cnExt('text-label-md font-semibold text-text-strong-950', className)}
       {...rest}
     />
   );
@@ -167,14 +167,13 @@ function ModalFooter({
   return (
     <div
       className={cnExt(
-        'flex items-center justify-between gap-3 border-t border-stroke-soft-200 px-5 py-4',
+        'flex items-center justify-end gap-3 border-t border-stroke-soft-200 bg-bg-weak-50/50 px-5 py-4 rounded-b-20',
         className,
       )}
       {...rest}
     />
   );
 }
-
 ModalFooter.displayName = 'ModalFooter';
 
 export {
@@ -192,3 +191,4 @@ export {
 };
 
 export { ModalRoot as Modal };
+

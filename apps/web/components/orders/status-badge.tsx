@@ -3,7 +3,7 @@ import * as StatusBadgePrimitive from "../ui/status-badge";
 import { statusLabel } from "../../lib/format";
 
 export function StatusBadge({ status }: { status: OrderStatus }) {
-  let statusVariant: "completed" | "pending" | "failed" | "disabled" = "pending";
+  let statusVariant: "completed" | "pending" | "failed" | "disabled" | "information" = "pending";
   let dotColorClass = "";
 
   switch (status) {
@@ -12,8 +12,8 @@ export function StatusBadge({ status }: { status: OrderStatus }) {
       dotColorClass = "text-success-base";
       break;
     case "partially_paid":
-      statusVariant = "pending";
-      dotColorClass = "text-blue-500";
+      statusVariant = "information";
+      dotColorClass = "text-information-base";
       break;
     case "pending":
       statusVariant = "pending";

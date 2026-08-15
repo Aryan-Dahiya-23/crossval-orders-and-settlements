@@ -1,5 +1,5 @@
 import { RiLockLine } from "@remixicon/react";
-import { cn } from "../../lib/cn";
+import { cn } from "@/utils/cn";
 
 export interface OrderLockBannerProps {
   paymentCount: number;
@@ -36,3 +36,4 @@ export function OrderLockBanner({
     </div>
   );
 }
+

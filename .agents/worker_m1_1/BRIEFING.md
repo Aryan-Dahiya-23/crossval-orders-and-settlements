@@ -1,66 +1,56 @@
-# BRIEFING — 2026-08-15T02:50:40Z
+# BRIEFING — 2026-08-15T12:45:10Z
 
 ## Mission
-Implement Phase 8 Order Lifecycle UI/UX (API client methods, React Query hooks, Order Form with dynamic line items, Create Order Page, Edit Order Page with audit-trail guard, Order Action Bar with Edit/Delete buttons and Delete Confirmation Modal, and integrate into Order Detail view).
+Implement Milestone 1: Core Tokens, Typography Standardization & Bug Fixes for CrossVal web app.
 
 ## 🔒 My Identity
-- Archetype: worker
-- Roles: implementer, qa, specialist
+- Archetype: implementer
+- Roles: [implementer, qa, specialist]
 - Working directory: /Users/aryandahiya/Desktop/Programming/crossval/.agents/worker_m1_1
-- Original parent: 02db0ae0-711e-4552-80b8-8e71140e6694
-- Milestone: Milestone 1 (Phase 8 - Order Lifecycle UI/UX)
+- Original parent: 27b67a64-c56c-45dc-9f3b-4f2b59c2f99d
+- Milestone: Milestone 1 (Core Tokens, Typography & Bug Fixes)
 
 ## 🔒 Key Constraints
-- USD is the only supported currency. Store/transport money as integer cents.
-- Order status is derived, not persisted or editable.
-- Orders become fully read-only after the first payment (strictly guarded on edit/delete).
-- Conditional unpaid edit/delete behavior.
-- Real-time subtotal and total calculations without floating-point errors.
-- Align UI primitives as the primary component system.
-- React Hook Form + Zod boundary validation.
-- Invalidate smallest correct set of React Query keys.
-- Preserve existing project conventions, test suite, and layout compliance.
+- Align UI tokens throughout (no hardcoded colors)
+- Preserve all existing functionality and domain rules
+- Zero type errors, zero lint errors/warnings, all 127 tests must pass
+- Minimal changes strictly matching file ownership scope
 
 ## Current Parent
-- Conversation ID: 02db0ae0-711e-4552-80b8-8e71140e6694
-- Updated: 2026-08-15T02:50:40Z
+- Conversation ID: 27b67a64-c56c-45dc-9f3b-4f2b59c2f99d
+- Updated: 2026-08-15T12:45:10Z
 
 ## Task Summary
-- **What to build**: Phase 8 Order Lifecycle UI/UX: API client methods, React Query hooks, OrderForm component, /orders/new page, /orders/[orderId]/edit page, order action bar & delete dialog, integration in order detail.
-- **Success criteria**: Full typecheck, lint, unit tests, and production build pass. All 6 tasks functional, guarded against paid modifications.
-- **Interface contracts**: packages/contracts
-- **Code layout**: apps/web/
+- **What to build**:
+  1. `apps/web/tailwind.config.ts`: add `lighter` under `colors.primary`.
+  2. `apps/web/components/orders/status-badge.tsx`: replace `text-blue-500` with `text-information-base`.
+  3. `apps/web/components/ui/button.tsx`: replace `hover:bg-red-700` with `hover:bg-error-dark` and `red-alpha-10` with `error-lighter`.
+  4. `apps/web/components/orders/order-form.tsx`: harmonize table headers and delete button focus ring.
+  5. Typography standardization: remove tracking/font weight overrides on `subheading-xs` and `subheading-2xs` in `app-shell.tsx`, `user-button.tsx`, `orders-dashboard.tsx`, `edit-order-workspace.tsx`, `order-detail-workspace.tsx`.
+  6. Subpage back-link and header spacing harmonization: standardize header containers to `mt-4 mb-6` in `create-order-workspace.tsx`, `edit-order-workspace.tsx`, `order-detail-workspace.tsx`.
+  7. Dialog title font weight: ensure `ModalTitle` in `modal.tsx` uses `font-semibold`.
+- **Success criteria**:
+  - `pnpm typecheck` passes with 0 errors
+  - `pnpm lint` passes with 0 errors and 0 warnings
+  - `pnpm --filter @crossval/web test` passes all 127 tests
+  - `pnpm build` succeeds
+  - Grep verification confirms 0 instances of `text-blue-500`, `hover:bg-red-700`, or manual `tracking-wider` on `subheading-xs`
 
 ## Change Tracker
-- **Files modified/created**:
-  - `apps/web/features/orders/api.ts` & `apps/web/lib/api/orders.ts` (createOrder, replaceOrder, deleteOrder)
-  - `apps/web/features/orders/queries.ts` & `apps/web/lib/hooks/use-orders.ts` (useCreateOrder, useReplaceOrder, useDeleteOrder)
-  - `apps/web/features/orders/form-schema.ts` (pure Zod schemas, decimalToCents, centsToDecimalString)
-  - `apps/web/features/orders/errors.ts` (parseOrderApiError, applyApiFieldErrorsToForm)
-  - `apps/web/components/orders/order-form.tsx` (React Hook Form + dynamic items + subtotal/total calculations)
-  - `apps/web/components/orders/create-order-workspace.tsx` & `apps/web/app/orders/new/page.tsx` (Create order route)
-  - `apps/web/components/orders/order-edit-guard.tsx`, `apps/web/components/orders/edit-order-workspace.tsx`, `apps/web/app/orders/[orderId]/edit/page.tsx` (Edit order route with audit-trail guard)
-  - `apps/web/components/orders/order-action-bar.tsx`, `apps/web/components/orders/order-delete-dialog.tsx`, `apps/web/components/orders/order-lock-banner.tsx` (Action bar, delete dialog, lock banner)
-  - `apps/web/components/orders/order-detail-workspace.tsx` (Order detail view integration)
-  - `apps/web/components/orders/orders-dashboard.tsx` (Header New Order button and empty state create action)
-  - `apps/web/features/orders/api.test.ts`, `apps/web/features/orders/errors.test.ts`, `apps/web/features/orders/queries.test.ts`, `apps/web/components/orders/order-form.test.ts` (Unit test suites)
-- **Build status**: PASS (all 3 workspaces: `@crossval/contracts`, `@crossval/api`, `@crossval/web`)
+- **Files modified**: [None yet]
+- **Build status**: Pending initial run
 - **Pending issues**: None
 
 ## Quality Status
-- **Build/test result**: 100% PASS (50 web tests passed, 16 api tests passed)
-- **Lint status**: 0 violations across all workspaces
-- **Tests added/modified**: 4 unit test suites added/extended covering API client, error parsing, cache invalidations, and form schemas/conversions.
-
-## Loaded Skills
-- None
+- **Build/test result**: Not yet run
+- **Lint status**: Not yet run
+- **Tests added/modified**: Existing 127 tests to verify
 
 ## Key Decisions Made
-- Extracted pure Zod form schemas and integer-cent conversion helpers to `apps/web/features/orders/form-schema.ts` and re-exported from `order-form.tsx` for optimal separation of concerns and fast unit testing.
-- Preserved backward-compatible re-export layer in `apps/web/lib/api/orders.ts` and `apps/web/lib/hooks/use-orders.ts`.
-- Guarded both UI action buttons and the `/orders/[orderId]/edit` page against modifications when orders have recorded settlements, maintaining full accounting audit ledger compliance.
+- Use precise file replacements targeting exact lines identified by explorers.
 
 ## Artifact Index
 - `.agents/worker_m1_1/DISPATCH.md` — Assignment instructions
+- `.agents/worker_m1_1/BRIEFING.md` — Agent briefing and situational awareness
 - `.agents/worker_m1_1/progress.md` — Heartbeat and progress log
-- `.agents/worker_m1_1/handoff.md` — Final handoff report
+- `.agents/worker_m1_1/handoff.md` — Final milestone 1 handoff report

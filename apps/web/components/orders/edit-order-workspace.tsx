@@ -51,10 +51,10 @@ function EditOrderContent({
           role="alert"
         >
           <div>
-            <span className="mx-auto flex size-12 items-center justify-center rounded-full bg-error-lighter/50 text-error-base ring-1 ring-inset ring-error-light">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-2xl bg-error-lighter text-error-base ring-1 ring-inset ring-error-base/20 shadow-regular-xs">
               <RiMoneyDollarCircleLine className="size-6" />
             </span>
-            <p className="mt-4 text-subheading-xs font-semibold uppercase tracking-wider text-text-soft-400">
+            <p className="mt-4 text-subheading-xs uppercase font-medium text-text-soft-400">
               {notFound ? "Not found" : "Connection problem"}
             </p>
             <h1 className="mt-2 text-title-h4 font-semibold text-text-strong-950">
@@ -67,7 +67,7 @@ function EditOrderContent({
                 ? "It may not exist or may belong to another workspace."
                 : "Check the API connection and try again."}
             </p>
-            <Button.Root asChild className="mt-5" variant="neutral" mode="stroke" size="medium">
+            <Button.Root asChild className="mt-6" variant="neutral" mode="stroke" size="medium">
               <Link href="/orders">Back to orders</Link>
             </Button.Root>
           </div>
@@ -82,13 +82,15 @@ function EditOrderContent({
   if (!order.isEditable || order.payments.length > 0) {
     return (
       <AppShell viewer={viewer}>
-        <Link
-          className="inline-flex items-center gap-1.5 rounded-lg text-paragraph-sm font-medium text-text-sub-600 outline-none transition hover:text-text-strong-950 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
-          href={`/orders/${order.id}`}
-        >
-          <RiArrowLeftLine className="size-4" />
-          Back to order details
-        </Link>
+        <div className="mb-5">
+          <Link
+            className="inline-flex items-center gap-1.5 rounded-lg text-paragraph-sm font-medium text-text-sub-600 outline-none transition hover:text-text-strong-950 focus-visible:shadow-button-important-focus focus-visible:outline-none"
+            href={`/orders/${order.id}`}
+          >
+            <RiArrowLeftLine className="size-4" />
+            Back to order details
+          </Link>
+        </div>
         <OrderEditGuard order={order} />
       </AppShell>
     );
@@ -122,23 +124,23 @@ function EditOrderContent({
 
   return (
     <AppShell viewer={viewer}>
-      <Link
-        className="inline-flex items-center gap-1.5 rounded-lg text-paragraph-sm font-medium text-text-sub-600 outline-none transition hover:text-text-strong-950 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
-        href={`/orders/${order.id}`}
-      >
-        <RiArrowLeftLine className="size-4" />
-        Back to order details
-      </Link>
-
-      <div className="mt-4 mb-6">
-        <PageHeader
-          eyebrow={`Edit order ${order.displayId}`}
-          title={`Edit ${order.customerName}`}
-          description="Update customer name, due date, or line items. The order total will recalculate automatically."
-        />
+      <div className="mb-5">
+        <Link
+          className="inline-flex items-center gap-1.5 rounded-lg text-paragraph-sm font-medium text-text-sub-600 outline-none transition hover:text-text-strong-950 focus-visible:shadow-button-important-focus focus-visible:outline-none"
+          href={`/orders/${order.id}`}
+        >
+          <RiArrowLeftLine className="size-4" />
+          Back to order details
+        </Link>
       </div>
 
-      <div className="max-w-4xl">
+      <PageHeader
+        eyebrow={`Edit order ${order.displayId}`}
+        title={`Edit ${order.customerName}`}
+        description="Update customer name, due date, or line items. The order total will recalculate automatically."
+      />
+
+      <div className="mt-6 max-w-4xl">
         <OrderForm
           mode="edit"
           initialValues={initialFormValues}
@@ -161,17 +163,18 @@ function EditOrderLoading({ viewer }: { viewer: Viewer }) {
         aria-label="Loading order for editing"
       >
         <div className="flex items-center gap-2">
-          <Skeleton className="h-8 w-28 rounded-lg" />
+          <Skeleton className="h-5 w-32 rounded-md" />
         </div>
 
-        <div className="space-y-1">
-          <Skeleton className="h-8 w-48 rounded-lg" />
-          <Skeleton className="h-4 w-72 rounded-md" />
+        <div className="space-y-2 border-b border-stroke-soft-200 pb-6">
+          <Skeleton className="h-4 w-28 rounded-md" />
+          <Skeleton className="h-8 w-64 rounded-lg" />
+          <Skeleton className="h-4 w-96 rounded-md" />
         </div>
 
         {/* Customer & date form section skeleton */}
         <div className="rounded-2xl bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200">
-          <div className="grid gap-6 md:grid-cols-2">
+          <div className="grid gap-5 sm:grid-cols-2">
             <div className="space-y-2">
               <Skeleton className="h-4 w-28 rounded-md" />
               <Skeleton className="h-10 w-full rounded-10" />
@@ -187,7 +190,7 @@ function EditOrderLoading({ viewer }: { viewer: Viewer }) {
         <div className="rounded-2xl bg-bg-white-0 p-6 shadow-regular-xs ring-1 ring-inset ring-stroke-soft-200 space-y-4">
           <div className="flex items-center justify-between">
             <Skeleton className="h-5 w-24 rounded-md" />
-            <Skeleton className="h-8 w-24 rounded-10" />
+            <Skeleton className="h-9 w-24 rounded-10" />
           </div>
           <div className="space-y-3">
             <Skeleton className="h-12 w-full rounded-xl" />

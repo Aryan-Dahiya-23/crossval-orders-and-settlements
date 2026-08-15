@@ -39,23 +39,23 @@ function CreateOrderContent({ viewer }: { viewer: Viewer }) {
 
   return (
     <AppShell viewer={viewer}>
-      <Link
-        className="inline-flex items-center gap-1.5 rounded-lg text-paragraph-sm font-medium text-text-sub-600 outline-none transition hover:text-text-strong-950 focus-visible:ring-2 focus-visible:ring-stroke-strong-950"
-        href="/orders"
-      >
-        <RiArrowLeftLine className="size-4" />
-        All orders
-      </Link>
-
-      <div className="mt-4 mb-6">
-        <PageHeader
-          eyebrow="Finance operations"
-          title="Create order"
-          description="Draft a new receivable order with custom line items and settlement due date."
-        />
+      <div className="mb-5">
+        <Link
+          className="inline-flex items-center gap-1.5 rounded-lg text-paragraph-sm font-medium text-text-sub-600 outline-none transition hover:text-text-strong-950 focus-visible:shadow-button-important-focus focus-visible:outline-none"
+          href="/orders"
+        >
+          <RiArrowLeftLine className="size-4" />
+          All orders
+        </Link>
       </div>
 
-      <div className="max-w-4xl">
+      <PageHeader
+        eyebrow="Finance operations"
+        title="Create order"
+        description="Draft a new receivable order with custom line items and settlement due date."
+      />
+
+      <div className="mt-6 max-w-4xl">
         <OrderForm
           mode="create"
           onSubmit={handleCreate}

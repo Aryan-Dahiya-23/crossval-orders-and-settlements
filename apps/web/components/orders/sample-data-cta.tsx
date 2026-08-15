@@ -8,6 +8,7 @@ import { useState } from "react";
 
 import { usePopulateSampleOrders } from "../../features/orders/queries";
 import { ApiError } from "../../lib/api-client";
+import { cn } from "@/utils/cn";
 import { Alert } from "../ui/alert";
 import * as Button from "../ui/button";
 
@@ -41,11 +42,14 @@ export function SampleDataCTA({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-2xl bg-primary-alpha-10 p-5 ring-1 ring-inset ring-primary-base/25 shadow-regular-xs sm:p-6 ${className ?? ""}`}
+      className={cn(
+        "relative overflow-hidden rounded-2xl border-2 border-dashed border-primary-base/25 bg-primary-alpha-10/40 p-5 shadow-regular-xs sm:p-6",
+        className,
+      )}
     >
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-4">
-          <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary-base text-static-white shadow-button-primary-focus">
+          <span className="grid size-12 shrink-0 place-items-center rounded-xl bg-primary-alpha-10 text-primary-base ring-1 ring-inset ring-primary-base/20">
             <RiFlashlightLine className="size-6" />
           </span>
           <div className="space-y-1">

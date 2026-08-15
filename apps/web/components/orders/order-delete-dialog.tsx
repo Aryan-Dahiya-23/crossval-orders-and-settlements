@@ -5,9 +5,9 @@ import { RiDeleteBinLine } from "@remixicon/react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { useDeleteOrder } from "../../features/orders/queries";
-import { ApiError } from "../../lib/api-client";
-import { formatUsd } from "../../lib/format";
+import { useDeleteOrder } from "@/features/orders/queries";
+import { ApiError } from "@/lib/api-client";
+import { formatUsd } from "@/lib/format";
 import { Alert } from "../ui/alert";
 import * as Button from "../ui/button";
 import * as Modal from "../ui/modal";
@@ -64,16 +64,15 @@ export function OrderDeleteDialog({
       }}
     >
       <Modal.Content className="max-w-[440px]">
-        <Modal.Header>
-          <Modal.Title>Delete order</Modal.Title>
-          <Modal.Description>
-            Permanently remove order {order.displayId} from your workspace.
-          </Modal.Description>
-        </Modal.Header>
+        <Modal.Header
+          icon={RiDeleteBinLine}
+          title="Delete order"
+          description={`Permanently remove order ${order.displayId} from your workspace.`}
+        />
 
-        <Modal.Body className="space-y-4 p-5">
+        <Modal.Body className="space-y-4">
           {/* Order identification summary */}
-          <div className="rounded-10 bg-bg-weak-50 p-4 ring-1 ring-inset ring-stroke-soft-200">
+          <div className="rounded-xl bg-bg-weak-50 p-4 ring-1 ring-inset ring-stroke-soft-200">
             <div className="flex items-center justify-between gap-3 text-paragraph-xs text-text-sub-600">
               <span className="font-mono font-medium text-text-strong-950">{order.displayId}</span>
               <span>Unpaid order</span>
@@ -83,13 +82,13 @@ export function OrderDeleteDialog({
             </p>
             <div className="mt-3 flex items-baseline justify-between border-t border-stroke-soft-200 pt-3 text-paragraph-xs">
               <span className="text-text-sub-600">Total amount</span>
-              <span className="font-semibold text-text-strong-950 tabular-nums">
+              <span className="font-semibold tabular-nums text-text-strong-950">
                 {formatUsd(order.totalAmountCents)}
               </span>
             </div>
           </div>
 
-          <p className="text-paragraph-xs text-text-sub-600">
+          <p className="text-paragraph-xs leading-5 text-text-sub-600">
             This action is permanent and cannot be undone. All associated line
             items will be dropped immediately from your workspace metrics.
           </p>
@@ -105,7 +104,6 @@ export function OrderDeleteDialog({
             mode="stroke"
             size="medium"
             type="button"
-            className="w-full"
             disabled={deleteMutation.isPending}
             onClick={onClose}
           >
@@ -113,9 +111,9 @@ export function OrderDeleteDialog({
           </Button.Root>
           <Button.Root
             variant="error"
+            mode="filled"
             size="medium"
             type="button"
-            className="w-full"
             disabled={deleteMutation.isPending}
             onClick={() => void handleDelete()}
           >
@@ -127,3 +125,4 @@ export function OrderDeleteDialog({
     </Modal.Root>
   );
 }
+

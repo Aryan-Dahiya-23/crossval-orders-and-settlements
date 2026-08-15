@@ -41,6 +41,10 @@ export const statusBadgeVariants = tv({
         icon: 'text-warning-base',
         dot: 'text-warning-base',
       },
+      information: {
+        icon: 'text-information-base',
+        dot: 'text-information-base',
+      },
       failed: {
         icon: 'text-error-base',
         dot: 'text-error-base',
@@ -52,6 +56,13 @@ export const statusBadgeVariants = tv({
     },
   },
   compoundVariants: [
+    {
+      variant: 'light',
+      status: 'information',
+      class: {
+        root: 'bg-information-lighter text-information-base',
+      },
+    },
     {
       variant: 'light',
       status: 'completed',

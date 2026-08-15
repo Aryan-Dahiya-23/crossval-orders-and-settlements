@@ -2,6 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { loginRequestSchema, type LoginRequest } from "@crossval/contracts";
+import { RiLock2Line, RiMailLine } from "@remixicon/react";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useForm } from "react-hook-form";
@@ -43,6 +44,7 @@ export function LoginForm() {
 
   return (
     <form className="grid gap-4" onSubmit={submit} noValidate>
+      {errors.root?.message ? <Alert tone="danger">{errors.root.message}</Alert> : null}
       <Field
         label="Email address"
         htmlFor="email"
@@ -53,6 +55,7 @@ export function LoginForm() {
           type="email"
           autoComplete="email"
           placeholder="you@company.com"
+          icon={RiMailLine}
           hasError={errors.email !== undefined}
           aria-invalid={errors.email !== undefined}
           {...register("email")}
@@ -67,17 +70,17 @@ export function LoginForm() {
           id="password"
           type="password"
           autoComplete="current-password"
-          placeholder="Enter your password"
+          placeholder="••••••••"
+          icon={RiLock2Line}
           hasError={errors.password !== undefined}
           aria-invalid={errors.password !== undefined}
           {...register("password")}
         />
       </Field>
-      {errors.root?.message ? <Alert tone="danger">{errors.root.message}</Alert> : null}
-      <Button.Root className="mt-1 w-full" variant="primary" size="medium" disabled={login.isPending} type="submit">
+      <Button.Root className="mt-2 w-full" variant="primary" size="medium" disabled={login.isPending} type="submit">
         {login.isPending ? "Signing in…" : "Sign in"}
       </Button.Root>
-      <p className="text-center text-paragraph-sm text-text-sub-600">
+      <p className="pt-2 text-center text-paragraph-sm text-text-sub-600">
         New to the workspace?{" "}
         <Link
           className="font-semibold text-text-strong-950 underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-stroke-strong-950 rounded-sm"
@@ -89,3 +92,5 @@ export function LoginForm() {
     </form>
   );
 }
+
+export default LoginForm;

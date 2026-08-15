@@ -9,7 +9,7 @@ import {
 } from "@remixicon/react";
 import Link from "next/link";
 
-import { cn } from "../../lib/cn";
+import { cn } from "@/utils/cn";
 import * as Button from "../ui/button";
 
 export interface OrderActionBarProps {
@@ -70,7 +70,7 @@ export function OrderActionBar({
           size="medium"
           type="button"
           onClick={onOpenDelete}
-          className="hover:text-error-base"
+          className="hover:text-error-base hover:ring-error-base/30"
           aria-label={`Delete order ${order.displayId}`}
         >
           <Button.Icon as={RiDeleteBinLine} />
@@ -92,12 +92,18 @@ export function OrderActionBar({
 
       {/* Settlement Action */}
       {!isPaidInFull ? (
-        <Button.Root variant="primary" size="medium" type="button" onClick={onOpenPayment}>
+        <Button.Root
+          variant="primary"
+          mode="filled"
+          size="medium"
+          type="button"
+          onClick={onOpenPayment}
+        >
           <Button.Icon as={RiMoneyDollarCircleLine} />
           Record payment
         </Button.Root>
       ) : (
-        <span className="inline-flex h-10 items-center gap-2 rounded-10 bg-success-lighter/50 px-3.5 text-label-sm font-semibold text-success-dark ring-1 ring-inset ring-success-light">
+        <span className="inline-flex h-10 items-center gap-2 rounded-10 bg-success-lighter px-3.5 text-label-sm font-semibold text-success-dark ring-1 ring-inset ring-success-base/20">
           <RiCheckboxCircleLine className="size-[18px] text-success-base" />
           Paid in full
         </span>
@@ -105,3 +111,4 @@ export function OrderActionBar({
     </div>
   );
 }
+

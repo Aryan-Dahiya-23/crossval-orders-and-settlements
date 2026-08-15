@@ -1,5 +1,2 @@
-import { twMerge } from "tailwind-merge";
+export { cn, cnExt, type ClassValue } from '../utils/cn';
 
-export function cn(...classes: Array<string | false | null | undefined>) {
-  return twMerge(classes.filter(Boolean).join(" "));
-}
